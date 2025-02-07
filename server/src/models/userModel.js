@@ -1,5 +1,7 @@
 const sequelize = require("../config/database");
 const { DataTypes } = require("sequelize");
+const studentModel = require("./studentModel");
+const instructorModel = require("./instructorModel");
 
 const User = sequelize.define(
   "users",
@@ -45,6 +47,24 @@ const User = sequelize.define(
     //   type: DataTypes.TINYINT(1),
     //   allowNull: false,
     // },
+    studentId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "students",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+    },
+    instructorId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "instructors",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -59,5 +79,11 @@ const User = sequelize.define(
     timestamps: false,
   }
 );
+
+User.hasOne(studentModel, { foreignKey: "studentId", onDelete: "CASCADE" });
+studentModel.belongsTo(User, { foreignKey: "studentId", onDelete: "CASCADE" });
+
+User.hasOne(instructorModel, { foreignKey: "userId", onDelete: "CASCADE" });
+instructorModel.belongsTo(User, { foreignKey: "userId" });
 
 module.exports = User;

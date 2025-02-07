@@ -1,27 +1,34 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const Instructor = require("./Instructor");
 
-const Course = sequelize.define("Course", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
+const Course = sequelize.define(
+  "Course",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    courseCode: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    courseName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
-  courseCode: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  courseName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-});
-
-Course.belongsTo(Instructor, {
-  foreignKey: "instructorId",
-  onDelete: "CASCADE",
-});
+  { timestamps: false }
+);
 
 module.exports = Course;

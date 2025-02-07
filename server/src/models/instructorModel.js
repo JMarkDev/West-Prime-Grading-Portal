@@ -1,19 +1,29 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const User = require("./User");
 
-const Instructor = sequelize.define("Instructor", {
-  instructorId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
+const Instructor = sequelize.define(
+  "instructors",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    department: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
-  department: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-});
-
-Instructor.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" });
+  { timestamps: false }
+);
 
 module.exports = Instructor;
