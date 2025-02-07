@@ -3,21 +3,21 @@ const bcrypt = require("bcryptjs");
 const saltsRounds = 10;
 const sequelize = require("../config/database");
 require("dotenv").config();
-const fs = require("fs");
 const date = require("date-and-time");
 const { setTokens } = require("../helpers/tokenHelpers");
-const statusList = require("../constants/statusList");
-const otpController = require("./otpController");
+const rolesList = require("../constants/rolesList");
+const studentModel = require("../models/studentModel");
 
 const handleRegister = async (req, res) => {
   const {
-    image,
     firstName,
     lastName,
     middleInitial,
     email,
     contactNumber,
     address,
+    course,
+    yearLevel,
     role,
     password,
   } = req.body;
@@ -25,7 +25,6 @@ const handleRegister = async (req, res) => {
     const user = await userModel.findOne({
       where: {
         email: email,
-        status: statusList.verified,
       },
     });
 
@@ -33,38 +32,12 @@ const handleRegister = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    await userModel.destroy({
-      where: {
-        email: email,
-        status: statusList.pending,
-      },
-    });
-
-    // send OTP to email
-    await otpController.postOTP(email);
-
     const createdAt = new Date();
     const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
 
-    // upload image
-    let newFileName = null;
-    if (req.file) {
-      let filetype = req.file.mimetype.split("/")[1];
-      newFileName = req.file.filename + "." + filetype;
-      fs.rename(
-        `./uploads/${req.file.filename}`,
-        `./uploads/${newFileName}`,
-        async (err) => {
-          if (err) throw err;
-          console.log("uploaded successfully");
-        }
-      );
-    }
-
     const hashPassword = await bcrypt.hash(password, saltsRounds);
 
-    await userModel.create({
-      image: newFileName ? `/uploads/${newFileName}` : null,
+    const newUser = await userModel.create({
       firstName,
       lastName,
       middleInitial,
@@ -72,15 +45,31 @@ const handleRegister = async (req, res) => {
       contactNumber,
       role,
       address,
-      status: statusList.pending,
       password: hashPassword,
       createdAt: sequelize.literal(`'${formattedDate}'`),
     });
 
-    return res.status(201).json({
-      status: "success",
-      message: `Verification OTP sent to ${email}`,
-    });
+    if (role === rolesList.student && newUser.id) {
+      await studentModel.create({
+        id: newUser.id,
+        course,
+        yearLevel,
+        createdAt: sequelize.literal(`'${formattedDate}'`),
+      });
+    }
+
+    let roleMessage = "";
+    if (role === rolesList.admin) {
+      roleMessage = "Admin";
+    } else if (role === rolesList.instructor) {
+      roleMessage = "Instructor";
+    } else {
+      roleMessage = "Student";
+    }
+
+    return res
+      .status(201)
+      .json({ message: `${roleMessage} added successfully` });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: error.message });
@@ -94,7 +83,6 @@ const handleLogin = async (req, res) => {
     const user = await userModel.findOne({
       where: {
         email: email,
-        status: statusList.verified,
       },
     });
 
