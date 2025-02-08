@@ -37,7 +37,18 @@ const handleRegister = async (req, res) => {
 
     const hashPassword = await bcrypt.hash(password, saltsRounds);
 
-    const newUser = await userModel.create({
+    let studentId = null;
+    if (role === rolesList.student) {
+      const newStudent = await studentModel.create({
+        course,
+        yearLevel,
+        createdAt: sequelize.literal(`'${formattedDate}'`),
+      });
+
+      studentId = newStudent.id;
+    }
+
+    await userModel.create({
       firstName,
       lastName,
       middleInitial,
@@ -45,18 +56,10 @@ const handleRegister = async (req, res) => {
       contactNumber,
       role,
       address,
+      studentId,
       password: hashPassword,
       createdAt: sequelize.literal(`'${formattedDate}'`),
     });
-
-    if (role === rolesList.student && newUser.id) {
-      await studentModel.create({
-        id: newUser.id,
-        course,
-        yearLevel,
-        createdAt: sequelize.literal(`'${formattedDate}'`),
-      });
-    }
 
     let roleMessage = "";
     if (role === rolesList.admin) {
@@ -67,9 +70,10 @@ const handleRegister = async (req, res) => {
       roleMessage = "Student";
     }
 
-    return res
-      .status(201)
-      .json({ message: `${roleMessage} added successfully` });
+    return res.status(201).json({
+      message: `${roleMessage} added successfully`,
+      status: "success",
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: error.message });
