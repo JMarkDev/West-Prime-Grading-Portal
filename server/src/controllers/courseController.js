@@ -123,6 +123,6 @@ module.exports = {
   getCourseById,
   createCourse,
   updateCourse,
-  deleteCourse,
-  searchCourses,
+  // deleteCourse,
+  // searchCourses,
 };
