@@ -1,23 +1,36 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllStudents, fetchStudents } from "../../../services/studentSlice";
+import {
+  getAllStudents,
+  fetchStudents,
+  filterStudents,
+} from "../../../services/studentSlice";
+import { getAllCourses, fetchCourses } from "../../../services/coursesSlice";
 import Pagination from "../../../components/Pagination";
 import { IoSearch } from "react-icons/io5";
 import StudentsTable from "../../../components/table/StudentsTable";
+import AddStudent from "./AddStudent";
 
 const Students = () => {
   const dispatch = useDispatch();
   const allStudents = useSelector(getAllStudents);
+  const allCourse = useSelector(getAllCourses);
   const [searchTerm, setSearchTerm] = useState("");
+  const [yearLevel, setYearLevel] = useState("");
+  const [course, setCourse] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
 
   const dataPerPage = 10;
 
-  console.log(allStudents);
-
   useEffect(() => {
-    dispatch(fetchStudents());
-  }, [dispatch]);
+    dispatch(fetchCourses());
+    if (searchTerm || yearLevel || course) {
+      dispatch(filterStudents({ name: searchTerm, course, yearLevel }));
+    } else {
+      dispatch(fetchStudents());
+    }
+  }, [dispatch, searchTerm, yearLevel, course]);
 
   // Paganation
   const indexOfLastDocument = currentPage * dataPerPage;
@@ -34,9 +47,15 @@ const Students = () => {
       <div className="flex  gap-5 lg:flex-row flex-col">
         <div className="flex flex-col  justify-between  w-full  gap-3">
           <div className="flex flex-col md:flex-row justify-between  w-full  gap-3">
-            <button className="text-nowrap w-fit p-2 px-4 bg-blue-500 hover:bg-blue-700 text-white rounded-md">
-              New Student
+            <button
+              onClick={() => setShowModal(true)}
+              className="text-nowrap w-fit p-2 px-4 bg-blue-500 hover:bg-blue-700 text-white rounded-md"
+            >
+              Add Student
             </button>
+            {showModal && (
+              <AddStudent setShowModal={setShowModal} showModal={showModal} />
+            )}
             <div className=" flex w-full lg:w-1/2  items-center relative">
               <input
                 type="text"
@@ -55,22 +74,24 @@ const Students = () => {
               <div className="">
                 <div className="relative w-full ">
                   <select
-                    // value={status || ""}
-                    // onChange={(e) => setStatus(e.target.value)}
+                    value={course}
+                    onChange={(e) => setCourse(e.target.value)}
                     className="border border-blue-500 focus:border-blue rounded-xl w-fit bg-gray-100 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   >
                     <option value="">Course</option>
-                    <option value="BSIT">BSIT</option>
-                    <option value="BSCS">BSCS</option>
-                    <option value="BSIS">BSIS</option>
+                    {allCourse.map(({ courseCode, id }) => (
+                      <option key={id} value={courseCode}>
+                        {courseCode}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
               <div className="">
                 <div className="relative w-full ">
                   <select
-                    // value={status || ""}
-                    // onChange={(e) => setStatus(e.target.value)}
+                    value={yearLevel}
+                    onChange={(e) => setYearLevel(e.target.value)}
                     className="border border-blue-500 focus:border-blue rounded-xl w-fit bg-gray-100 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   >
                     <option value="">Year level</option>
