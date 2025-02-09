@@ -1,6 +1,7 @@
 const studentModel = require("../models/studentModel");
 const userModel = require("../models/userModel");
 const rolesList = require("../constants/rolesList");
+const { Op } = require("sequelize");
 
 const getStudents = async (req, res) => {
   try {
