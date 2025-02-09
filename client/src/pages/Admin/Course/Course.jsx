@@ -1,33 +1,36 @@
-// import React from "react";
-
-// const Course = () => {
-//   return <div>Course</div>;
-// };
-
-// export default Course;
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllCourses, fetchCourses } from "../../../services/coursesSlice";
+import {
+  getAllCourses,
+  fetchCourses,
+  searchCourse,
+} from "../../../services/coursesSlice";
 import Pagination from "../../../components/Pagination";
 import { IoSearch } from "react-icons/io5";
 import CourseTable from "../../../components/table/CourseTable";
+import AddCourse from "./AddCourse";
 
-const Instructor = () => {
+const Course = () => {
   const dispatch = useDispatch();
-  const allStudents = useSelector(getAllCourses);
+  const allCourse = useSelector(getAllCourses);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
 
   const dataPerPage = 10;
 
   useEffect(() => {
-    dispatch(fetchCourses());
-  }, [dispatch]);
+    if (searchTerm) {
+      dispatch(searchCourse(searchTerm));
+    } else {
+      dispatch(fetchCourses());
+    }
+  }, [dispatch, searchTerm]);
 
   // Paganation
   const indexOfLastDocument = currentPage * dataPerPage;
   const indexOfFirstDocument = indexOfLastDocument - dataPerPage;
-  const currentData = allStudents?.slice(
+  const currentData = allCourse?.slice(
     indexOfFirstDocument,
     indexOfLastDocument
   );
@@ -38,9 +41,15 @@ const Instructor = () => {
     <div>
       <div className="flex  gap-5  flex-col">
         <div className="flex flex-col md:flex-row justify-between  w-full  gap-3">
-          <button className="text-nowrap w-fit p-2 px-4 bg-blue-500 hover:bg-blue-700 text-white rounded-md">
-            New Course
+          <button
+            onClick={() => setShowModal(true)}
+            className="text-nowrap w-fit p-2 px-4 bg-blue-500 hover:bg-blue-700 text-white rounded-md"
+          >
+            Add Course
           </button>
+          {showModal && (
+            <AddCourse showModal={showModal} setShowModal={setShowModal} />
+          )}
           <div className="flex justify-end  w-full  gap-3">
             <div className=" flex w-full lg:w-1/2  items-center relative">
               <input
@@ -61,7 +70,7 @@ const Instructor = () => {
         <div className="flex justify-end mt-5">
           <Pagination
             dataPerPage={dataPerPage}
-            totalData={allStudents?.length}
+            totalData={allCourse?.length}
             paginate={paginate}
             currentPage={currentPage}
           />
@@ -71,4 +80,4 @@ const Instructor = () => {
   );
 };
 
-export default Instructor;
+export default Course;
