@@ -120,8 +120,8 @@ const searchSubject = async (req, res) => {
 module.exports = {
   getSubjects,
   addSubject,
-  // updateSubject,
-  // getSubjectById,
-  // deleteSubject,
-  // searchSubject,
+  updateSubject,
+  getSubjectById,
+  deleteSubject,
+  searchSubject,
 };
