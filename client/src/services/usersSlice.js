@@ -35,7 +35,7 @@ const searchRoleUsers = (role) => {
 };
 
 export const searchAdminRole = searchRoleUsers(rolesList.admin);
-export const searchSlaughterhouseRole = searchRoleUsers(rolesList.supervisor);
+export const searchInstructor = searchRoleUsers(rolesList.instructor);
 
 export const filterFacultyByCampus = createAsyncThunk(
   "users/filter-faculty",
@@ -52,7 +52,7 @@ const usersSlice = createSlice({
     users: [],
     roleUsers: {
       admin: [],
-      slaughterhouse: [],
+      instructor: [],
     },
     userByid: null,
 
@@ -121,16 +121,16 @@ const usersSlice = createSlice({
         state.status.admin = "failed";
         state.error = action.error.message;
       })
-      // search slaughterhouse role
-      .addCase(searchSlaughterhouseRole.pending, (state) => {
-        state.status.slaughterhouse = "loading";
+      // search instructor
+      .addCase(searchInstructor.pending, (state) => {
+        state.status.instructor = "loading";
       })
-      .addCase(searchSlaughterhouseRole.fulfilled, (state, action) => {
-        state.status.slaughterhouse = "succeeded";
+      .addCase(searchInstructor.fulfilled, (state, action) => {
+        state.status.instructor = "succeeded";
         state.users = action.payload;
       })
-      .addCase(searchSlaughterhouseRole.rejected, (state, action) => {
-        state.status.slaughterhouse = "failed";
+      .addCase(searchInstructor.rejected, (state, action) => {
+        state.status.instructor = "failed";
         state.error = action.error.message;
       });
   },
