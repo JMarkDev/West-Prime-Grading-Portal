@@ -6,6 +6,10 @@ const bcrypt = require("bcryptjs");
 const statusList = require("../constants/statusList");
 const saltsRounds = 10;
 const otpController = require("./otpController");
+const studentModel = require("../models/studentModel");
+const rolesList = require("../constants/rolesList");
+const sequelize = require("../config/database");
+const date = require("date-and-time");
 
 const getUserByEmail = async (req, res) => {
   const { email } = req.query;
@@ -35,6 +39,7 @@ const getUserById = async (req, res) => {
       where: {
         id: id,
       },
+      include: [{ model: studentModel, required: false }],
     });
     return res.status(200).json(user);
   } catch (error) {
@@ -48,7 +53,6 @@ const getAllUserByRole = async (req, res) => {
     const verifiedUser = await userModel.findAll({
       where: {
         role: role,
-        status: statusList.verified,
       },
     });
 
@@ -123,44 +127,56 @@ const searchUser = async (req, res) => {
 
 const updateUserData = async (req, res) => {
   const { id } = req.params;
-  const { image, firstName, lastName, middleInitial, contactNumber, password } =
-    req.body;
+  const {
+    firstName,
+    lastName,
+    middleInitial,
+    email,
+    contactNumber,
+    address,
+    course,
+    yearLevel,
+    schoolYear,
+    password,
+  } = req.body;
 
   try {
     // Fetch the officeId from the userModel
     const user = await userModel.findOne({ where: { id } });
-
-    // upload image
-    let newFileName = null;
-    if (req.file) {
-      let filetype = req.file.mimetype.split("/")[1];
-      newFileName = req.file.filename + "." + filetype;
-      fs.rename(
-        `./uploads/${req.file.filename}`,
-        `./uploads/${newFileName}`,
-        async (err) => {
-          if (err) throw err;
-          console.log("uploaded successfully");
-        }
-      );
-    }
+    const createdAt = new Date();
+    const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
 
     const hashPassword = await bcrypt.hash(password, saltsRounds);
 
     await userModel.update(
       {
-        image: newFileName ? `/uploads/${newFileName}` : user.image,
         firstName: firstName,
         lastName: lastName,
         middleInitial: middleInitial,
         contactNumber: contactNumber,
+        address: address,
+        email: email,
         password: hashPassword,
-        updatedAt: createdAt,
+        updatedAt: sequelize.literal(`'${formattedDate}'`),
       },
       {
         where: { id },
       }
     );
+
+    if (user.role === rolesList.student) {
+      await studentModel.update(
+        {
+          course: course,
+          yearLevel: yearLevel,
+          schoolYear: schoolYear,
+          updatedAt: sequelize.literal(`'${formattedDate}'`),
+        },
+        {
+          where: { id: user.studentId },
+        }
+      );
+    }
 
     return res.status(200).json({
       status: "success",
