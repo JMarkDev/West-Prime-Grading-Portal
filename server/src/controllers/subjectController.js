@@ -44,7 +44,6 @@ const addSubject = async (req, res) => {
 const updateSubject = async (req, res) => {
   const { id } = req.params;
   const { subjectCode, description, units } = req.body;
-  console.log(req.body);
 
   try {
     const subject = await subjectModel.findByPk(id);
