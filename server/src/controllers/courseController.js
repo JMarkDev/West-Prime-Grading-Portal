@@ -1,5 +1,7 @@
 const courseModel = require("../models/courseModel");
 const { Op } = require("sequelize");
+const date = require("date-and-time");
+const sequelize = require("../config/database");
 
 const getCourses = async (req, res) => {
   try {
@@ -31,13 +33,21 @@ const createCourse = async (req, res) => {
     const courseExists = await courseModel.findOne({
       where: { courseCode },
     });
+
+    const createdAt = new Date();
+    const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
+
     if (courseExists) {
       return res.status(400).json({
         message: "Course already exists",
         status: "error",
       });
     }
-    const course = await courseModel.create({ courseCode, courseName });
+    const course = await courseModel.create({
+      courseCode,
+      courseName,
+      createdAt: sequelize.literal(`'${formattedDate}'`),
+    });
     return res.status(200).json({
       course,
       message: "Course added successfully",
@@ -58,8 +68,15 @@ const updateCourse = async (req, res) => {
       return res.status(404).json({ message: "Course not found" });
     }
 
+    const createdAt = new Date();
+    const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
+
     const course = await courseModel.update(
-      { courseCode, courseName },
+      {
+        courseCode,
+        courseName,
+        updatedAt: sequelize.literal(`'${formattedDate}'`),
+      },
       {
         where: { id },
       }
@@ -93,7 +110,7 @@ const deleteCourse = async (req, res) => {
 };
 
 const searchCourses = async (req, res) => {
-  const { searchTerm } = req.params;
+  const { searchTerm } = req.query;
 
   if (!searchTerm) {
     return res.status(400).json({ message: "searchTerm is required" });
