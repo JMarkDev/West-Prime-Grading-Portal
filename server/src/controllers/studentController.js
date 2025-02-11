@@ -10,13 +10,17 @@ const getStudents = async (req, res) => {
       include: [
         {
           model: studentModel,
+          as: "student", // Use the alias from the association
           required: true,
         },
       ],
       order: [["createdAt", "DESC"]],
     });
+
+    console.log(students, "students");
     return res.status(200).json(students);
   } catch (error) {
+    console.error("Error fetching students:", error);
     return res.status(500).json({ message: error.message });
   }
 };
