@@ -18,6 +18,7 @@ const handleRegister = async (req, res) => {
     address,
     course,
     yearLevel,
+    schoolYear,
     role,
     password,
   } = req.body;
@@ -42,6 +43,7 @@ const handleRegister = async (req, res) => {
       const newStudent = await studentModel.create({
         course,
         yearLevel,
+        schoolYear,
         createdAt: sequelize.literal(`'${formattedDate}'`),
       });
 
