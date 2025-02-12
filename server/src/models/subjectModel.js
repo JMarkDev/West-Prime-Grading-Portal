@@ -10,32 +10,28 @@ const Subjects = sequelize.define(
       autoIncrement: true,
     },
     subjectCode: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(55),
       allowNull: false,
-      unique: true,
     },
     units: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER(11),
       allowNull: false,
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
-    department: {
-      type: DataTypes.STRING,
+    createdAt: {
+      type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
-    instructorId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    status: {
-      type: DataTypes.TINYINT,
-      allowNull: false,
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
-  { timestamps: false }
+  { timestamps: false, indexes: [{ unique: true, fields: ["subjectCode"] }] }
 );
 
 module.exports = Subjects;
