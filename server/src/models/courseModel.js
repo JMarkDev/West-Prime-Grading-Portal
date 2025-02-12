@@ -1,8 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-
 const Course = sequelize.define(
-  "Course",
+  "courses",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -10,12 +9,11 @@ const Course = sequelize.define(
       autoIncrement: true,
     },
     courseCode: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(55),
       allowNull: false,
-      unique: true,
     },
     courseName: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(255),
       allowNull: false,
     },
     createdAt: {
@@ -28,7 +26,15 @@ const Course = sequelize.define(
       allowNull: true,
     },
   },
-  { timestamps: false }
+  {
+    timestamps: false,
+    indexes: [
+      {
+        unique: true,
+        fields: ["courseCode"],
+      },
+    ],
+  }
 );
 
 module.exports = Course;
