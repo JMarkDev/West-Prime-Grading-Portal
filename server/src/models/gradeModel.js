@@ -13,28 +13,44 @@ const Grade = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    studentName: {
+      type: DataTypes.STRING(55),
+      allowNull: true,
+    },
     grade: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
-    feedback: {
-      type: DataTypes.STRING(1000),
-      allowNull: false,
+    remarks: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
     },
     subjectId: {
       type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    subjectCode: {
+      type: DataTypes.STRING(25),
+      allowNull: false,
+    },
+    description: {
+      type: DataTypes.STRING(50),
       allowNull: false,
     },
     instructorId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    schoolYearId: {
-      type: DataTypes.INTEGER,
+    instructor: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+    },
+    schoolYear: {
+      type: DataTypes.STRING(25),
       allowNull: false,
     },
     semester: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(25),
       allowNull: false,
     },
     createdAt: {
