@@ -1,7 +1,6 @@
 const sequelize = require("../config/database");
 const { DataTypes } = require("sequelize");
-const studentModel = require("./studentModel");
-const instructorModel = require("./instructorModel");
+const Student = require("./studentModel");
 
 const User = sequelize.define(
   "users",
@@ -34,6 +33,7 @@ const User = sequelize.define(
     email: {
       type: DataTypes.STRING(55),
       allowNull: false,
+      unique: true,
     },
     role: {
       type: DataTypes.TINYINT(1),
@@ -43,24 +43,11 @@ const User = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    // status: {
-    //   type: DataTypes.TINYINT(1),
-    //   allowNull: false,
-    // },
     studentId: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
         model: "students",
-        key: "id",
-      },
-      onDelete: "CASCADE",
-    },
-    instructorId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: "instructors",
         key: "id",
       },
       onDelete: "CASCADE",
@@ -80,10 +67,19 @@ const User = sequelize.define(
   }
 );
 
-User.hasOne(studentModel, { foreignKey: "studentId", onDelete: "CASCADE" });
-studentModel.belongsTo(User, { foreignKey: "studentId", onDelete: "CASCADE" });
+// Associations
+User.belongsTo(Student, {
+  foreignKey: "studentId", // This is correct
+  targetKey: "id",
+  as: "student",
+});
 
-User.hasOne(instructorModel, { foreignKey: "userId", onDelete: "CASCADE" });
-instructorModel.belongsTo(User, { foreignKey: "userId" });
+Student.hasOne(User, {
+  foreignKey: "studentId",
+  sourceKey: "id",
+  as: "user",
+  onDelete: "CASCADE",
+  hooks: true,
+});
 
 module.exports = User;
