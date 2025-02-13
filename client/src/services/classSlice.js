@@ -101,6 +101,20 @@ export const fetchStudentSubjectsBySemSY = createAsyncThunk(
   }
 );
 
+export const deleteClass = createAsyncThunk(
+  "classes/deleteClass",
+  async ({ instructorId, subjectCode, semester, schoolYear, toast }) => {
+    const response = await axios.delete(
+      `/classes/delete/instructorId/${instructorId}/subjectCode/${subjectCode}/semester/${semester}/schoolYear/${schoolYear}`
+    );
+
+    if (response.data.status === "success") {
+      toast.success(response.data.message);
+      return response.data;
+    }
+  }
+);
+
 const classSlice = createSlice({
   name: "classes",
   initialState: {
@@ -188,6 +202,16 @@ const classSlice = createSlice({
       })
       .addCase(fetchStudentSubjectsBySemSY.rejected, (state, action) => {
         state.status.studentAllSubjects = "failed";
+      })
+      .addCase(deleteClass.pending, (state) => {
+        state.status.deleteClass = "loading";
+      })
+      .addCase(deleteClass.fulfilled, (state, action) => {
+        state.status.deleteClass = "succeeded";
+        state.classByInstructor = null;
+      })
+      .addCase(deleteClass.rejected, (state, action) => {
+        state.status.deleteClass = "failed";
       });
   },
 });
