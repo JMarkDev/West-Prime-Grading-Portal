@@ -16,8 +16,6 @@ const getStudents = async (req, res) => {
       ],
       order: [["createdAt", "DESC"]],
     });
-
-    console.log(students, "students");
     return res.status(200).json(students);
   } catch (error) {
     console.error("Error fetching students:", error);
@@ -64,6 +62,7 @@ const filterStudents = async (req, res) => {
       include: [
         {
           model: studentModel,
+          as: "student", // ✅ Specify alias (this must match your association)
           required: true,
           where: studentWhereCondition,
         },
