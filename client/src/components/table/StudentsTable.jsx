@@ -8,8 +8,9 @@ import { toastUtils } from "../../hooks/useToast";
 import NoData from "../NoData";
 import { BsThreeDots } from "react-icons/bs";
 import { MdPreview } from "react-icons/md";
-import { deleteUser } from "../../services/usersSlice";
-import UpdateUser from "../../pages/Shared/UpdateUser";
+import { deleteStudent } from "../../services/studentSlice";
+import UpdateStudent from "../../pages/Admin/Students/UpdateStudent";
+
 const StudentsTable = ({ allStudents }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -36,7 +37,7 @@ const StudentsTable = ({ allStudents }) => {
   };
 
   const handleDelete = () => {
-    dispatch(deleteUser({ id: selectedStudent, toast: toastUtils() }));
+    dispatch(deleteStudent({ id: selectedStudent, toast: toastUtils() }));
     closeDeleteModal();
   };
   return (
@@ -52,6 +53,8 @@ const StudentsTable = ({ allStudents }) => {
                 <th className="px-4 py-3 text-nowrap">Phone</th>
                 <th className="px-4 py-3 text-nowrap">Address</th>
                 <th className="px-4 py-3 text-nowrap">Email</th>
+                <th className="px-4 py-3 text-nowrap">Course</th>
+                <th className="px-4 py-3 text-nowrap">Year Level</th>
                 <th className="px-4 py-3 text-center text-nowrap">Actions</th>
               </tr>
             </thead>
@@ -65,11 +68,13 @@ const StudentsTable = ({ allStudents }) => {
                   address,
                   contactNumber,
                   email,
+                  studentId,
+                  student: { course, yearLevel },
                 }) => (
                   <tr
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/user-details/${id}`);
+                      navigate(`/student-details/${studentId}`);
                     }}
                     key={id}
                     className="bg-white dark:bg-gray-800 hover:bg-gray-200 cursor-pointer"
@@ -86,6 +91,12 @@ const StudentsTable = ({ allStudents }) => {
 
                     <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
                       {email}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
+                      {course}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
+                      {yearLevel}
                     </td>
 
                     <td className="px-6 py-4 flex gap-3 justify-center items-center relative">
@@ -108,7 +119,7 @@ const StudentsTable = ({ allStudents }) => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/user-details/${id}`);
+                                navigate(`/student-details/${studentId}`);
                                 console.log(id);
                               }}
                               className="w-full flex text-green-700 items-center gap-2 py-2 px-4 text-left hover:bg-gray-300 dark:hover:bg-gray-700"
@@ -156,7 +167,7 @@ const StudentsTable = ({ allStudents }) => {
           </table>
         )}
         {editModal && (
-          <UpdateUser
+          <UpdateStudent
             id={selectedStudent}
             showModal={editModal}
             setShowModal={setEditModal}
