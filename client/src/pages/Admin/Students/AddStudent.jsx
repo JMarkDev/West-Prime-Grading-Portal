@@ -9,11 +9,16 @@ import rolesList from "../../../constants/rolesList";
 import { fetchStudents } from "../../../services/studentSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCourses, getAllCourses } from "../../../services/coursesSlice";
+import {
+  getAllSchoolYears,
+  fetchSchoolYears,
+} from "../../../services/schoolYearSlice";
 
 const AddStudent = ({ showModal, setShowModal }) => {
   const dispatch = useDispatch();
   const [showPass, setShowPass] = useState(false);
   const toast = useToast();
+  const schoolYears = useSelector(getAllSchoolYears);
   const courses = useSelector(getAllCourses);
   const { register, handleSubmit } = useForm();
   const [loading, setLoading] = useState(false);
@@ -28,9 +33,11 @@ const AddStudent = ({ showModal, setShowModal }) => {
   const [confirmPasswordError, setConfirmpasswordError] = useState("");
   const [courseError, setCourseError] = useState("");
   const [yearLevelError, setYearLevelError] = useState("");
+  const [schoolYearError, setSchoolYearError] = useState("");
 
   useEffect(() => {
     dispatch(fetchCourses());
+    dispatch(fetchSchoolYears());
   }, [dispatch]);
 
   const onSubmit = async (data) => {
@@ -48,6 +55,7 @@ const AddStudent = ({ showModal, setShowModal }) => {
     setAddressError("");
     setCourseError("");
     setYearLevelError("");
+    setSchoolYearError("");
 
     try {
       const response = await api.post("/auth/register", data);
@@ -78,6 +86,9 @@ const AddStudent = ({ showModal, setShowModal }) => {
               break;
             case "yearLevel":
               setYearLevelError(error.msg);
+              break;
+            case "schoolYear":
+              setSchoolYearError(error.msg);
               break;
             case "email":
               setEmailError(error.msg);
@@ -277,6 +288,40 @@ const AddStudent = ({ showModal, setShowModal }) => {
 
                     {yearLevelError && (
                       <span className="text-red-500">{yearLevelError}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between md:flex-row flex-col gap-5">
+                  <div className="flex flex-col flex-grow ">
+                    <label
+                      htmlFor="yearLevel"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      School Year
+                    </label>
+                    <select
+                      {...register("schoolYear")}
+                      type="text"
+                      id="schoolYear"
+                      className={`${
+                        schoolYearError ? "border-red-500 " : "border-gray-300 "
+                      } p-2.5 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer`}
+                      placeholder=" "
+                    >
+                      <option value="">Select School Year</option>
+                      {schoolYears.map((schoolYear) => (
+                        <option
+                          key={schoolYear.id}
+                          value={schoolYear.schoolYear}
+                        >
+                          {schoolYear.schoolYear}
+                        </option>
+                      ))}
+                    </select>
+
+                    {schoolYearError && (
+                      <span className="text-red-500">{schoolYearError}</span>
                     )}
                   </div>
                 </div>
