@@ -11,6 +11,12 @@ const refreshToken = require("./src/middlewares/refreshToken");
 const authRoute = require("./src/routes/authRoute");
 const userRoute = require("./src/routes/userRoute");
 const notificationRoute = require("./src/routes/notificationRoute");
+const studentRoute = require("./src/routes/studentRoute");
+const courseRoute = require("./src/routes/courseRoute");
+const gradeRoute = require("./src/routes/gradeRoute");
+const subjectRoute = require("./src/routes/subjectRoute");
+const schoolYearRoute = require("./src/routes/schoolYearRoute");
+const classRoute = require("./src/routes/classRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -59,6 +65,12 @@ app.use(verifyToken);
 
 app.use("/users", userRoute);
 app.use("/notification", notificationRoute);
+app.use("/students", studentRoute);
+app.use("/courses", courseRoute);
+app.use("/grades", gradeRoute);
+app.use("/subjects", subjectRoute);
+app.use("/schoolyears", schoolYearRoute);
+app.use("/classes", classRoute);
 
 app.get("/");
 // Server setup

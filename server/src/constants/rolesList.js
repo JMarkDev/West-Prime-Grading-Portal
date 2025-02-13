@@ -1,7 +1,7 @@
 const rolesList = {
   admin: 1,
   instructor: 2,
-  student,
+  student: 3,
 };
 
 module.exports = rolesList;

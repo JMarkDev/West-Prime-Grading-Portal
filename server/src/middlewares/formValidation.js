@@ -96,35 +96,50 @@ const registerValidationRules = () => {
       }
       return true;
     }),
-  ];
-};
-
-const addAnimalValidation = () => {
-  return [
-    validateRequiredField("customerName"),
-    validateRequiredField("customerPhone"),
-    validateRequiredField("customerAddress"),
-    validateRequiredField("type"),
-    validateRequiredField("condition"),
-    validateRequiredField("weight"),
-    validateRequiredField("pricePerKg"),
-    validateRequiredField("total"),
-    validateRequiredField("slaughterDate"),
-    validateRequiredField("slaughterhouseId"),
-    validateRequiredField("paidAmount"),
-    validateRequiredField("balance"),
-    validateRequiredField("status"),
-    body("customerPhone").custom((value, { req }) => {
-      if (!value) {
-        throw new Error("Contact Number is required");
+    body("course").custom((value, { req }) => {
+      if (req.body.role === 3) {
+        if (!value) {
+          throw new Error("Course is required");
+        }
       }
-
-      if (req.body.customerPhone && req.body.customerPhone.length !== 11) {
-        throw new Error("Contact Number must be 11 digits");
+      return true;
+    }),
+    body("yearLevel").custom((value, { req }) => {
+      if (req.body.role === 3) {
+        if (!value) {
+          throw new Error("Year Level is required");
+        }
+      }
+      return true;
+    }),
+    body("schoolYear").custom((value, { req }) => {
+      if (req.body.role === 3) {
+        if (!value) {
+          throw new Error("School Year is required");
+        }
       }
       return true;
     }),
   ];
+};
+
+const addSubjectValidation = () => {
+  return [
+    validateRequiredField("subjectCode"),
+    validateRequiredField("description"),
+    validateRequiredField("units"),
+  ];
+};
+
+const addCourseValidation = () => {
+  return [
+    validateRequiredField("courseCode"),
+    validateRequiredField("courseName"),
+  ];
+};
+
+const addSchoolYearValidation = () => {
+  return [validateRequiredField("schoolYear")];
 };
 
 const updateProfileValidation = () => {
@@ -154,5 +169,7 @@ module.exports = {
   validateEmail,
   validateForgotPassword,
   updateProfileValidation,
-  addAnimalValidation,
+  addSubjectValidation,
+  addCourseValidation,
+  addSchoolYearValidation,
 };
