@@ -32,20 +32,24 @@ export const fetchStudentById = createAsyncThunk(
 export const filterStudents = createAsyncThunk(
   "students/filterStudents",
   async ({ name, course, yearLevel }) => {
-    const queryParams = new URLSearchParams();
+    try {
+      const queryParams = new URLSearchParams();
 
-    if (name) {
-      queryParams.append("name", name);
-    }
-    if (course) {
-      queryParams.append("course", course);
-    }
-    if (yearLevel) {
-      queryParams.append("yearLevel", yearLevel);
-    }
+      if (name) {
+        queryParams.append("name", name);
+      }
+      if (course) {
+        queryParams.append("course", course);
+      }
+      if (yearLevel) {
+        queryParams.append("yearLevel", yearLevel);
+      }
 
-    const response = await axios.get(`/students/filter?${queryParams}`);
-    return response.data;
+      const response = await axios.get(`/students/filter?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching students:", error);
+    }
   }
 );
 
