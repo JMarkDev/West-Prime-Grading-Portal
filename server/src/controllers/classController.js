@@ -114,17 +114,23 @@ const updateClass = async (req, res) => {
 };
 
 const deleteClass = async (req, res) => {
-  const { id } = req.params;
+  const { instructorId, subjectCode, semester, schoolYear } = req.params;
+
   try {
-    await gradeModel.destroy({ where: { id } });
-    return res.status(200).json({ message: "Class deleted successfully" });
+    console.log(instructorId, subjectCode, semester, schoolYear);
+    await gradeModel.destroy({
+      where: { instructorId, subjectCode, semester, schoolYear },
+    });
+    return res
+      .status(200)
+      .json({ message: "Class deleted successfully", status: "success" });
   } catch (error) {
+    console.error("Error deleting class:", error.message);
     return res.status(500).json({ message: error.message });
   }
 };
 
 const getClassByInstructorSemSY = async (req, res) => {
-  const { instructorId, subjectCode, semester, schoolYear } = req.params;
   try {
     const classes = await gradeModel.findAll({
       where: { instructorId, subjectCode, semester, schoolYear },
