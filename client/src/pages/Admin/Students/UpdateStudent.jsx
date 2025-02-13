@@ -12,11 +12,16 @@ import {
   getFetchedUserById,
 } from "../../../services/usersSlice";
 import { fetchCourses, getAllCourses } from "../../../services/coursesSlice";
+import {
+  getAllSchoolYears,
+  fetchSchoolYears,
+} from "../../../services/schoolYearSlice";
 
 const UpdateStudent = ({ id, showModal, setShowModal }) => {
   const dispatch = useDispatch();
   const [showPass, setShowPass] = useState(false);
   const toast = useToast();
+  const schoolYears = useSelector(getAllSchoolYears);
   const { register, handleSubmit, setValue } = useForm();
   const [loading, setLoading] = useState(false);
   const user = useSelector(getFetchedUserById);
@@ -32,10 +37,12 @@ const UpdateStudent = ({ id, showModal, setShowModal }) => {
   const [confirmPasswordError, setConfirmpasswordError] = useState("");
   const [courseError, setCourseError] = useState("");
   const [yearLevelError, setYearLevelError] = useState("");
+  const [schoolYearError, setSchoolYearError] = useState("");
 
   useEffect(() => {
     dispatch(fetchUserById(id));
     dispatch(fetchCourses());
+    dispatch(fetchSchoolYears());
   }, [id, dispatch]);
 
   useEffect(() => {
@@ -46,6 +53,7 @@ const UpdateStudent = ({ id, showModal, setShowModal }) => {
       setValue("middleInitial", user?.middleInitial || "");
       setValue("course", user?.student?.course || "");
       setValue("yearLevel", user?.student?.yearLevel || "");
+      setValue("schoolYear", user?.student?.schoolYear || "");
       setValue("email", user?.email || "");
       setValue("address", user?.address || "");
       setValue("contactNumber", user?.contactNumber || "");
@@ -65,6 +73,7 @@ const UpdateStudent = ({ id, showModal, setShowModal }) => {
     setAddressError("");
     setCourseError("");
     setYearLevelError("");
+    setSchoolYearError("");
 
     try {
       const response = await api.put(`/users/update-user-data/id/${id}`, data);
@@ -95,6 +104,9 @@ const UpdateStudent = ({ id, showModal, setShowModal }) => {
               break;
             case "yearLevel":
               setYearLevelError(error.msg);
+              break;
+            case "schoolYear":
+              setSchoolYearError(error.msg);
               break;
             case "email":
               setEmailError(error.msg);
@@ -294,6 +306,40 @@ const UpdateStudent = ({ id, showModal, setShowModal }) => {
 
                     {yearLevelError && (
                       <span className="text-red-500">{yearLevelError}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between md:flex-row flex-col gap-5">
+                  <div className="flex flex-col flex-grow ">
+                    <label
+                      htmlFor="yearLevel"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      School Year
+                    </label>
+                    <select
+                      {...register("schoolYear")}
+                      type="text"
+                      id="schoolYear"
+                      className={`${
+                        schoolYearError ? "border-red-500 " : "border-gray-300 "
+                      } p-2.5 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer`}
+                      placeholder=" "
+                    >
+                      <option value="">Select School Year</option>
+                      {schoolYears.map((schoolYear) => (
+                        <option
+                          key={schoolYear.id}
+                          value={schoolYear.schoolYear}
+                        >
+                          {schoolYear.schoolYear}
+                        </option>
+                      ))}
+                    </select>
+
+                    {schoolYearError && (
+                      <span className="text-red-500">{schoolYearError}</span>
                     )}
                   </div>
                 </div>
