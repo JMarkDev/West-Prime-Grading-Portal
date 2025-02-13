@@ -39,10 +39,11 @@ const getUserById = async (req, res) => {
       where: {
         id: id,
       },
-      include: [{ model: studentModel, required: false }],
+      include: [{ model: studentModel, required: false, as: "student" }],
     });
     return res.status(200).json(user);
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: error.message });
   }
 };
