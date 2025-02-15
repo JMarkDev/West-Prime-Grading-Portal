@@ -37,6 +37,8 @@ const AddClassForm = ({ showModal, setShowModal }) => {
     instructor: "",
     instructorId: "",
     students: [],
+    yearLevel: selectedCourse,
+    course: yearLevel,
   });
 
   useEffect(() => {
@@ -46,6 +48,14 @@ const AddClassForm = ({ showModal, setShowModal }) => {
     dispatch(fetchSchoolYears());
     dispatch(fetchSubjects());
   }, [dispatch]);
+
+  useEffect(() => {
+    setData((prevData) => ({
+      ...prevData,
+      yearLevel: yearLevel,
+      course: selectedCourse,
+    }));
+  }, [selectedCourse, yearLevel]);
 
   const onSubmit = async () => {
     setLoading(true);
@@ -300,6 +310,7 @@ const AddClassForm = ({ showModal, setShowModal }) => {
                   {/* Course Filter */}
                   <select
                     value={selectedCourse}
+                    required
                     onChange={(e) => setSelectedCourse(e.target.value)}
                     className="border  border-gray-300 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
@@ -312,6 +323,7 @@ const AddClassForm = ({ showModal, setShowModal }) => {
                   </select>
                   <select
                     value={yearLevel}
+                    required
                     onChange={(e) => setYearLevel(e.target.value)}
                     className="border  border-gray-300 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   >
@@ -361,7 +373,7 @@ const AddClassForm = ({ showModal, setShowModal }) => {
 
                 <ul className="space-y-2">
                   {filterStudents.map(
-                    ({ id, student, firstName, middleInitial, lastName }) => (
+                    ({ student, firstName, middleInitial, lastName }) => (
                       <li
                         key={student.id}
                         className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg"

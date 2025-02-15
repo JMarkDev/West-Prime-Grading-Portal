@@ -115,12 +115,21 @@ export const deleteClass = createAsyncThunk(
   }
 );
 
+export const fetchInstructorSubjects = createAsyncThunk(
+  "classes/fetchInstructorSubjects",
+  async (instructorId) => {
+    const response = await axios.get(`/classes/instructorId/${instructorId}`);
+    return response.data;
+  }
+);
+
 const classSlice = createSlice({
   name: "classes",
   initialState: {
     allClasses: [],
     filteredClasses: [],
     classByInstructor: null,
+    instructorSubjects: [],
     studentAllSubjects: [],
     status: {
       classes: "idle",
@@ -212,6 +221,16 @@ const classSlice = createSlice({
       })
       .addCase(deleteClass.rejected, (state, action) => {
         state.status.deleteClass = "failed";
+      })
+      .addCase(fetchInstructorSubjects.pending, (state) => {
+        state.status.instructorSubjects = "loading";
+      })
+      .addCase(fetchInstructorSubjects.fulfilled, (state, action) => {
+        state.status.instructorSubjects = "succeeded";
+        state.instructorSubjects = action.payload;
+      })
+      .addCase(fetchInstructorSubjects.rejected, (state, action) => {
+        state.status.instructorSubjects = "failed";
       });
   },
 });
@@ -223,3 +242,6 @@ export const getFilteredClasses = (state) => state.classes.filteredClasses;
 export const getClassByInstructor = (state) => state.classes.classByInstructor;
 export const getStudentAllSubjects = (state) =>
   state.classes.studentAllSubjects;
+
+export const allInstructorSubjects = (state) =>
+  state.classes.instructorSubjects;

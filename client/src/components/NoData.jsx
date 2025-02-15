@@ -1,4 +1,4 @@
-import noDataImage from "../assets/images/undraw_no_data_re_kwbl.svg";
+import noDataImage from "../assets/images/undraw_no-data_ig65.svg";
 
 const NoData = () => {
   return (

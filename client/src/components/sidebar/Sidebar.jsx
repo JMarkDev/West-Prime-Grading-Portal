@@ -3,19 +3,17 @@ import { logoutUser } from "../../services/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserData } from "../../services/authSlice";
 import { Link, useLocation } from "react-router-dom";
-import { FaUsers } from "react-icons/fa";
-import {
-  TbReportAnalytics,
-  TbReport,
-  TbTransactionDollar,
-} from "react-icons/tb";
+import { FaUsers, FaRegCalendarAlt, FaChalkboardTeacher } from "react-icons/fa";
+import { TbReportAnalytics } from "react-icons/tb";
 import { HiOutlineClipboardDocumentList } from "react-icons/hi2";
 import { RiPieChart2Fill } from "react-icons/ri";
 import { BiLogOut } from "react-icons/bi";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
-import Logo from "../../assets/images/slaughter-removebg-preview.png";
+import Logo from "../../assets/images/west_prime_logo-removebg-preview.png";
 import PropTypes from "prop-types";
 import rolesList from "../../constants/rolesList";
+import { PiStudent } from "react-icons/pi";
+import { MdOutlineAdminPanelSettings } from "react-icons/md";
 
 const Sidebar = ({ sidebar, handleBurger }) => {
   const dispatch = useDispatch();
@@ -30,23 +28,38 @@ const Sidebar = ({ sidebar, handleBurger }) => {
   const adminLinks = [
     {
       title: "Dashboard",
-      path: "/dashboard",
+      path: "/admin-dashboard",
       src: <RiPieChart2Fill />,
     },
     {
-      title: "Student Management",
+      title: "Students",
       path: "/students",
+      src: <PiStudent />,
+    },
+    {
+      title: "Class",
+      path: "/class",
       src: <FaUsers />,
     },
     {
-      title: "Instructor Management",
+      title: "Instructor",
       path: "/instructors",
-      src: <FaUsers />,
+      src: <FaChalkboardTeacher />,
     },
     {
-      title: "Course Management",
+      title: "Subjects",
+      path: "/subjects",
+      src: <HiOutlineClipboardDocumentList />,
+    },
+    {
+      title: "Course",
       path: "/courses",
-      src: <FaUsers />,
+      src: <HiOutlineClipboardDocumentList />,
+    },
+    {
+      title: "School Year",
+      path: "/school-year",
+      src: <FaRegCalendarAlt />,
     },
 
     {
@@ -54,23 +67,41 @@ const Sidebar = ({ sidebar, handleBurger }) => {
       path: "/reports",
       src: <TbReportAnalytics />,
     },
-
     {
-      title: "User Management",
-      path: "/users",
-      src: <FaUsers />,
-      sublinks: [
-        { title: "City Treasurer", path: "/city-treasurer" },
-        { title: "Slaughterhouse Admin", path: "/slaughterhouse-admin" },
-      ],
+      title: "Admin",
+      path: "/admin",
+      src: <MdOutlineAdminPanelSettings />,
     },
+  ];
 
-    { title: "Reports", path: "/reports", src: <TbReport /> },
+  const instructorsLinks = [
+    {
+      title: "Students",
+      path: "/students",
+      src: <PiStudent />,
+    },
+    {
+      title: "Student Grades",
+      path: "/student-grades",
+      src: <FaUsers />,
+    },
+  ];
+
+  const studentLinks = [
+    {
+      title: "Grades",
+      path: "/grades",
+      src: <FaUsers />,
+    },
   ];
 
   useEffect(() => {
     if (role === rolesList.admin) {
       setSidebarLinks(adminLinks);
+    } else if (role === rolesList.instructor) {
+      setSidebarLinks(instructorsLinks);
+    } else {
+      setSidebarLinks(studentLinks);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,14 +131,10 @@ const Sidebar = ({ sidebar, handleBurger }) => {
       >
         <div className="fixed w-64 h-full px-3 py-4 overflow-y-auto bg-main  rounded-xl dark:bg-gray-800 ">
           <Link
-            to="/dashboard"
+            to="/admin-dashboard"
             className="flex items-center justify-center ps-2.5 mb-5"
           >
-            <img
-              src={Logo}
-              className="h-14 me-3 text-center filter invert brightness-0"
-              alt="Logo"
-            />
+            <img src={Logo} className="h-16 me-3 text-center " alt="Logo" />
           </Link>
           <ul className="space-y-2 font-medium">
             {sidebarLinks.map((menu, index) => (
@@ -123,7 +150,7 @@ const Sidebar = ({ sidebar, handleBurger }) => {
                   <div>
                     <button
                       onClick={() => toggleSublinks(menu.title)}
-                      className="flex items-center text-nowrap justify-between w-full p-2 rounded-lg text-white hover:text-white hover:bg-green-800 dark:hover:bg-gray-700 group"
+                      className="flex items-center text-nowrap justify-between w-full p-2 rounded-lg text-white hover:text-white hover:bg-main_hover dark:hover:bg-gray-700 group"
                     >
                       <div className="flex items-center">
                         <span className="text-2xl">{menu.src}</span>
@@ -145,8 +172,8 @@ const Sidebar = ({ sidebar, handleBurger }) => {
                               to={submenu.path}
                               className={`${
                                 location.pathname === submenu.path &&
-                                "bg-green-800 text-white"
-                              } flex items-center p-2 text-white rounded-lg  hover:text-white hover:bg-green-800 dark:hover:bg-gray-700 group`}
+                                "bg-blue-800 text-white"
+                              } flex items-center p-2 text-white rounded-lg  hover:text-white hover:main_hover dark:hover:bg-gray-700 group`}
                             >
                               {submenu.title}
                             </Link>
@@ -161,8 +188,8 @@ const Sidebar = ({ sidebar, handleBurger }) => {
                     to={menu.path}
                     className={`${
                       location.pathname === menu.path &&
-                      "bg-green-800 text-white"
-                    } flex items-center p-2 text-nowrap  rounded-lg text-white hover:text-white hover:bg-green-800 dark:hover:bg-gray-700 group`}
+                      "bg-main_hover text-white"
+                    } flex items-center p-2 text-nowrap  rounded-lg text-white hover:text-white hover:bg-main_hover dark:hover:bg-gray-700 group`}
                   >
                     <span className="text-2xl">{menu.src}</span>
                     <span className="ms-3">{menu.title}</span>
@@ -174,7 +201,7 @@ const Sidebar = ({ sidebar, handleBurger }) => {
               <button
                 onClick={handleLogout}
                 className={
-                  "w-[230px] mt-20 flex items-center p-2 text-white rounded-lg hover:text-white hover:bg-green-800 dark:hover:bg-gray-700 group"
+                  "w-[230px] mt-20 flex items-center p-2 text-white rounded-lg hover:text-white hover:bg-main_hover dark:hover:bg-gray-700 group"
                 }
               >
                 <span className="text-2xl">

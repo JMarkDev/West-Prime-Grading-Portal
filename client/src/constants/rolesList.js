@@ -1,6 +1,7 @@
 const rolesList = {
   admin: 1,
-  supervisor: 2,
+  instructor: 2,
+  student: 3,
 };
 
 export default rolesList;

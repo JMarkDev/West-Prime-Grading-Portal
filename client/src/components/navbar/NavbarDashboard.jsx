@@ -36,29 +36,20 @@ const NavDashboard = ({ handleBurger }) => {
   }, [userData]);
 
   const pageTitles = {
-    "/city-treasurer-dashboard": "City Treasurer Dashboard",
-    "/dashboard": "Dashboard",
-    "/user-management": "User Management",
+    "/admin-dashboard": "Dashboard",
+    "/instructor-dashboard": "Instructor Dashboard",
     "/user-profile": "User Profile",
-    "/slaughterhouse-records": "Slaughterhouse Records",
-    "/cattle": "Animal Records",
-    "/pigs": "Animal Records",
-    "/goats": "Animal Records",
-    "/city-admin": "City Admin",
-    "/transaction": "Transactions",
     "/reports": "Reports",
-
-    "/slaughterhouse-dashboard": "Slaughter Dashboard",
-    "/slaughterhouse-transaction": "Transactions",
-    "/slaughterhouse-cattle": "Animal Records",
-    "/slaughterhouse-pigs": "Animal Records",
-    "/slaughterhouse-goats": "Animal Records",
-    "/slaughterhouse-reports": "Slaughter Reports",
-
-    "/slaughterhouse-admin": "Slaughterhouse List",
-    "/city-treasurer": "City Treasurer List",
-    "/user-details": "User Details",
-    "/animal-records": "Animal Records",
+    "/courses": "Courses",
+    "/students": "Students List",
+    "/instructors": "Instructors List",
+    "/subjects": "Subjects",
+    "/school-year": "School Year",
+    "/departments": "Departments",
+    "/student-details": "Student Details",
+    "/admin": "Admin List",
+    "/student-class": "Student Class",
+    "/class": "Class List",
   };
 
   const handleNotification = () => {
@@ -122,19 +113,19 @@ const NavDashboard = ({ handleBurger }) => {
     }, 1000);
   };
   return (
-    <div className="w-full z-20 md:w-[calc(100vw-16rem)] flex gap-5 items-center px-4 flex-grow fixed h-16 bg-gray-300">
+    <div className="w-full z-20 md:w-[calc(100vw-16rem)] flex gap-5 items-center px-4 flex-grow fixed h-16 bg-white shadow-md ">
       <button
         onClick={handleBurger}
         aria-controls="logo-sidebar"
         type="button"
-        className=" inline-flex items-center md:hidden text-2xl font-bold text-green-800 rounded-lg    "
+        className=" inline-flex items-center md:hidden text-2xl font-bold text-blue-800 rounded-lg    "
       >
         <FaBars />
       </button>
       <div className="flex  justify-between items-center w-full">
         <h1 className="md:text-2xl text-lg font-bold text-main">{title}</h1>
         <div className="flex lg:text-[16px] text-sm gap-4">
-          <div className="relative  flex items-center">
+          {/* <div className="relative  flex items-center">
             {unread > 0 && (
               <span className="text-sm  px-1.5 absolute right-[-10px] top-0 text-white bg-red-600 rounded-full text-center">
                 {unread}
@@ -147,10 +138,9 @@ const NavDashboard = ({ handleBurger }) => {
               className="flex items-center "
             >
               <IoMdNotificationsOutline className="text-2xl text-gray-900" />
-              {/* <span className="hidden lg:block">Notifications</span> */}
             </button>
-          </div>
-          {showNotification && (
+          </div> */}
+          {/* {showNotification && (
             <div
               onMouseLeave={handleNotification}
               className="absolute top-12 right-5 "
@@ -160,11 +150,11 @@ const NavDashboard = ({ handleBurger }) => {
                 handleNotificationClick={handleNotificationClick}
               />
             </div>
-          )}
+          )} */}
 
           <div className="flex items-center gap-3">
             <div className="flex-col flex text-gray-900">
-              <span className="font-bold">{userData?.firstName}</span>
+              <span className="font-bold">{`${userData?.firstName} ${userData?.middleInitial}. ${userData?.lastName}`}</span>
               <span className="text-[12px]">{getUserRole(userData?.role)}</span>
             </div>
 

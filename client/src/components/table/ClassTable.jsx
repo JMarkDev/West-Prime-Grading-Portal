@@ -92,6 +92,8 @@ const ClassTable = ({ allClasses }) => {
                 <th className="px-4 py-3 text-nowrap">Description</th>
                 <th className="px-4 py-3 text-nowrap">Instructor</th>
                 <th className="px-4 py-3 text-nowrap">Semester</th>
+                <th className="px-4 py-3 text-nowrap">Course</th>
+
                 <th className="px-4 py-3 text-nowrap">School Year</th>
                 <th className="px-4 py-3 text-center text-nowrap">Actions</th>
               </tr>
@@ -105,6 +107,7 @@ const ClassTable = ({ allClasses }) => {
                     instructor,
                     semester,
                     schoolYear,
+                    course,
                     instructorId,
                   },
                   index
@@ -135,6 +138,9 @@ const ClassTable = ({ allClasses }) => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
                       {semester}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
+                      {course}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
                       {schoolYear}

@@ -7,8 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        main: "#3B7A57",
-        main_hover: "#255e35",
+        main: "#2563eb", // Tailwind's blue-500
+        main_hover: "#0c47c9",
         yellow: "#de8f2f",
         yellow_hover: "#c77b1e",
       },

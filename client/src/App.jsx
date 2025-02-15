@@ -12,22 +12,83 @@ import UserDetails from "./pages/Shared/UserDetails";
 import Homepage from "./pages/Homepage";
 import LayoutDashboard from "./components/layout/LayoutDashboard";
 import Dashboard from "./pages/Admin/Dashboard/Dashboard";
+import Students from "../src/pages/Admin/Students/Students";
+import Instructor from "./pages/Admin/Instructor/Instructor";
+import Subjects from "./pages/Admin/Subjects/Subjects";
+import Course from "./pages/Admin/Course/Course";
+import SchoolYear from "./pages/Admin/SchoolYear/SchoolYear";
+import Department from "./pages/Admin/Department/Department";
+import Reports from "./pages/Admin/Reports/Reports";
+import StudentDetails from "./pages/Admin/Students/StudentDetails";
+import Admin from "./pages/Admin/Admin/Admin";
+import StudentClass from "./pages/Admin/StudentClass/StudentClass";
+import ClassDetails from "./pages/Admin/StudentClass/ViewClass";
 
-import CityAdmin from "./pages/Admin/UserManagement/CityAdmin/CityAdmin";
-import SlaughterhouseUser from "./pages/Admin/UserManagement/Slaughterhouse/SlaughterhouseUsers";
-import TransactionDetails from "./pages/Shared/TransactionDetails";
+import ViewGrade from "./pages/Student/ViewGrade";
+import InstructorSubjects from "./pages/Instructor/InstructorSubjects";
+import InputGrades from "./pages/Instructor/InputGrades";
+
 function App() {
   const adminLinks = [
     {
       title: "Dashboard",
-      path: "/city-treasurer-dashboard",
+      path: "/admin-dashboard",
       component: <Dashboard />,
     },
-    { title: "City Admin", path: "/city-treasurer", component: <CityAdmin /> },
     {
-      title: "Slaughterhouse User",
-      path: "/slaughterhouse-admin",
-      component: <SlaughterhouseUser />,
+      title: "Students",
+      path: "/students",
+      component: <Students />,
+    },
+    {
+      title: "Class",
+      path: "/class",
+      component: <StudentClass />,
+    },
+    {
+      title: "Class Details",
+      path: "/class-details/:id",
+      component: <ClassDetails />,
+    },
+    {
+      title: "Student Details",
+      path: "/student-details/:id",
+      component: <StudentDetails />,
+    },
+    {
+      title: "Instructor",
+      path: "/instructors",
+      component: <Instructor />,
+    },
+    {
+      title: "Subjects",
+      path: "/subjects",
+      component: <Subjects />,
+    },
+    {
+      title: "Course",
+      path: "/courses",
+      component: <Course />,
+    },
+    {
+      title: "School Year",
+      path: "/school-year",
+      component: <SchoolYear />,
+    },
+    {
+      title: "Departments",
+      path: "/departments",
+      component: <Department />,
+    },
+    {
+      title: "Reports",
+      path: "/reports",
+      component: <Reports />,
+    },
+    {
+      title: "Admin",
+      path: "/admin",
+      component: <Admin />,
     },
   ];
 
@@ -41,11 +102,6 @@ function App() {
       title: "User Details",
       path: "/user-details/:id",
       component: <UserDetails />,
-    },
-    {
-      title: "Transaction",
-      path: "/transaction/:id",
-      component: <TransactionDetails />,
     },
   ];
 
@@ -68,7 +124,35 @@ function App() {
             }
           />
         ))}
+        <Route
+          path="/view-grades"
+          element={
+            <ProtectedRoute
+              element={<ViewGrade />}
+              allowedRoles={[rolesList.student]}
+            />
+          }
+        />
 
+        <Route
+          path="/instructor-dashboard"
+          element={
+            <ProtectedRoute
+              element={<InstructorSubjects />}
+              allowedRoles={[rolesList.instructor]}
+            />
+          }
+        />
+
+        <Route
+          path="/input-grades"
+          element={
+            <ProtectedRoute
+              element={<InputGrades />}
+              allowedRoles={[rolesList.instructor]}
+            />
+          }
+        />
         {sharedLinks.map((link, index) => (
           <Route
             key={index}
