@@ -36,7 +36,7 @@ const deleteStudent = async (req, res) => {
 };
 
 const filterStudents = async (req, res) => {
-  const { name, course, yearLevel } = req.query;
+  const { name, course, yearLevel, schoolYear } = req.query;
 
   // Conditions for userModel (firstName, lastName)
   const userWhereCondition = {};
@@ -54,6 +54,10 @@ const filterStudents = async (req, res) => {
   }
   if (yearLevel) {
     studentWhereCondition.yearLevel = yearLevel;
+  }
+
+  if (schoolYear) {
+    studentWhereCondition.schoolYear = schoolYear;
   }
 
   try {
