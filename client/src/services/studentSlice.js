@@ -31,7 +31,7 @@ export const fetchStudentById = createAsyncThunk(
 
 export const filterStudents = createAsyncThunk(
   "students/filterStudents",
-  async ({ name, course, yearLevel }) => {
+  async ({ name, course, yearLevel, schoolYear }) => {
     try {
       const queryParams = new URLSearchParams();
 
@@ -43,6 +43,10 @@ export const filterStudents = createAsyncThunk(
       }
       if (yearLevel) {
         queryParams.append("yearLevel", yearLevel);
+      }
+
+      if (schoolYear) {
+        queryParams.append("schoolYear", schoolYear);
       }
 
       const response = await axios.get(`/students/filter?${queryParams}`);
