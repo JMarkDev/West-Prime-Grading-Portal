@@ -5,7 +5,7 @@ const router = express.Router();
 router.post("/add", classController.createClass);
 router.get("/all", classController.getClasses);
 router.get("/id/:id", classController.getClass);
-router.put("/update/:id", classController.updateClass);
+// router.put("/update/:id", classController.updateClass);
 router.delete(
   "/delete/instructorId/:instructorId/subjectCode/:subjectCode/semester/:semester/schoolYear/:schoolYear",
   classController.deleteClass
@@ -36,4 +36,6 @@ router.get(
   "/instructorId/:instructorId",
   classController.getAllSubjectByInstructor
 );
+
+router.put("/input-grades", classController.inputGrades);
 module.exports = router;

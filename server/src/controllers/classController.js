@@ -99,40 +99,40 @@ const getClass = async (req, res) => {
   }
 };
 
-const updateClass = async (req, res) => {
-  const { id } = req.params;
-  const { instructor, instructorId, schoolYear, semester, students, subjects } =
-    req.body;
+// const updateClass = async (req, res) => {
+//   const { id } = req.params;
+//   const { instructor, instructorId, schoolYear, semester, students, subjects } =
+//     req.body;
 
-  try {
-    const gradeEntries = [];
-    const createdAt = new Date();
-    const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
+//   try {
+//     const gradeEntries = [];
+//     const createdAt = new Date();
+//     const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
 
-    for (const student of students) {
-      for (const subject of subjects) {
-        gradeEntries.push({
-          studentId: student.id,
-          subjectId: subject.id,
-          instructor,
-          instructorId,
-          schoolYear,
-          semester,
-          grade: null,
-          remarks: null,
-          updatedAt: sequelize.literal(`'${formattedDate}'`),
-        });
-      }
-    }
+//     for (const student of students) {
+//       for (const subject of subjects) {
+//         gradeEntries.push({
+//           studentId: student.id,
+//           subjectId: subject.id,
+//           instructor,
+//           instructorId,
+//           schoolYear,
+//           semester,
+//           grade: null,
+//           remarks: null,
+//           updatedAt: sequelize.literal(`'${formattedDate}'`),
+//         });
+//       }
+//     }
 
-    const grades = await gradeModel.update(gradeEntries, { where: { id } });
-    return res
-      .status(201)
-      .json({ message: "Class updated successfully", grades });
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
+//     const grades = await gradeModel.update(gradeEntries, { where: { id } });
+//     return res
+//       .status(201)
+//       .json({ message: "Class updated successfully", grades });
+//   } catch (error) {
+//     return res.status(500).json({ message: error.message });
+//   }
+// };
 
 const deleteClass = async (req, res) => {
   const { instructorId, subjectCode, semester, schoolYear } = req.params;
@@ -203,6 +203,7 @@ const getStudentSubjectsBySemSY = async (req, res) => {
         };
       }
       acc[key].subjects.push({
+        id: subject.id,
         subjectId: subject.subjectId,
         subjectCode: subject.subjectCode,
         description: subject.description,
@@ -265,6 +266,7 @@ const getAllSubjectByInstructor = async (req, res) => {
 
       if (!existingSubjectIds.has(subject.subjectId)) {
         acc[key].subjects.push({
+          id: subject.id,
           subjectId: subject.subjectId,
           subjectCode: subject.subjectCode,
           description: subject.description,
@@ -389,7 +391,7 @@ const getClassByInstructorSemSySubjectCode = async (req, res) => {
     // Fetch students enrolled in this specific subject
     const students = await gradeModel.findAll({
       where: { instructorId, semester, schoolYear, subjectCode },
-      attributes: ["id", "studentId", "studentName"],
+      attributes: ["id", "studentId", "studentName", "grade", "remarks"],
       order: [["studentName", "ASC"]],
     });
 
@@ -407,6 +409,8 @@ const getClassByInstructorSemSySubjectCode = async (req, res) => {
         id: student.id,
         studentId: student.studentId,
         fullName: student.studentName,
+        grade: student.grade,
+        remarks: student.remarks,
       })),
     };
 
@@ -479,11 +483,30 @@ const addStudentToClass = async (req, res) => {
   }
 };
 
+const inputGrades = async (req, res) => {
+  const { grades } = req.body;
+
+  try {
+    await gradeModel.sequelize.transaction(async (t) => {
+      for (const { id, grade } of grades) {
+        await gradeModel.update({ grade }, { where: { id }, transaction: t });
+      }
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Grades updated successfully", status: "success" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createClass,
   getClasses,
   getClass,
-  updateClass,
+  // updateClass,
   deleteClass,
   getClassByInstructorSemSY,
   getStudentSubjectsBySemSY,
@@ -492,4 +515,5 @@ module.exports = {
   removeStudentFromClass,
   addStudentToClass,
   getAllSubjectByInstructor,
+  inputGrades,
 };
