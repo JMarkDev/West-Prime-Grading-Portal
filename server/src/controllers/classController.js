@@ -489,7 +489,11 @@ const inputGrades = async (req, res) => {
   try {
     await gradeModel.sequelize.transaction(async (t) => {
       for (const { id, grade } of grades) {
-        await gradeModel.update({ grade }, { where: { id }, transaction: t });
+        const remarks = Number(grade) > 3.0 ? "Failed" : "Passed";
+        await gradeModel.update(
+          { grade, remarks },
+          { where: { id }, transaction: t }
+        );
       }
     });
 
