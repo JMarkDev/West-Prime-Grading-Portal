@@ -208,7 +208,7 @@ const UserProfile = () => {
             >
               Profile info
             </li>
-            <li
+            {/* <li
               className={`cursor-pointer text-sm text-nowrap px-2 py-1 rounded-md ${
                 activeTab === "update"
                   ? "bg-blue-600 text-white"
@@ -217,7 +217,7 @@ const UserProfile = () => {
               onClick={() => setActiveTab("update")}
             >
               Change email
-            </li>
+            </li> */}
             <li
               className={`cursor-pointer  text-sm text-nowrap px-2 py-1 rounded-md  ${
                 activeTab === "password"
@@ -339,7 +339,7 @@ const UserProfile = () => {
                 </div>
               </div>
             )}
-            {activeTab === "update" && (
+            {/* {activeTab === "update" && (
               <div>
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-5">
@@ -373,13 +373,6 @@ const UserProfile = () => {
                   </div>
 
                   <div className="flex justify-end">
-                    {/* <button
-                      onClick={handleSendOTP}
-                      type="button"
-                      className="text-[#1A9CE7] text-sm absolute right-5"
-                    >
-                      SEND
-                    </button> */}
                     {sendOtp ? (
                       <button
                         type="button"
@@ -400,7 +393,7 @@ const UserProfile = () => {
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
 
             {activeTab === "password" && (
               <div className="flex flex-col gap-3">
