@@ -31,4 +31,9 @@ router.delete(
 );
 
 router.post("/add-student", classController.addStudentToClass);
+
+router.get(
+  "/instructorId/:instructorId",
+  classController.getAllSubjectByInstructor
+);
 module.exports = router;

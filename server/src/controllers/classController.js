@@ -6,13 +6,32 @@ const studentModel = require("../models/studentModel");
 const userModel = require("../models/userModel");
 
 const createClass = async (req, res) => {
-  const { instructor, instructorId, schoolYear, semester, students, subjects } =
-    req.body;
+  const {
+    instructor,
+    instructorId,
+    schoolYear,
+    semester,
+    students,
+    subjects,
+    yearLevel,
+    course,
+  } = req.body;
+
   try {
     const gradeEntries = [];
 
     const createdAt = new Date();
     const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
+
+    const existingClass = await gradeModel.findOne({
+      where: { instructorId, schoolYear, semester },
+    });
+
+    if (existingClass) {
+      return res.status(400).json({
+        message: `Class for ${instructor} already exists for SY ${schoolYear} - ${semester}.`,
+      });
+    }
 
     for (const student of students) {
       for (const subject of subjects) {
@@ -36,6 +55,8 @@ const createClass = async (req, res) => {
           studentId: Number(student.id),
           subjectId: subject.id,
           studentName: student.fullName,
+          yearLevel: yearLevel,
+          course: course,
           subjectCode: subject.subjectCode,
           description: subject.description,
           instructor,
@@ -206,58 +227,65 @@ const getStudentSubjectsBySemSY = async (req, res) => {
   }
 };
 
-// const getAllSubjectWithInstructor = async (req, res) => {
-//   const { semester, schoolYear } = req.params;
+const getAllSubjectByInstructor = async (req, res) => {
+  const { instructorId } = req.params;
 
-//   try {
-//     // Fetch all subjects grouped by subjectCode, description, and instructor
-//     const subjects = await gradeModel.findAll({
-//       where: { semester, schoolYear },
-//       attributes: [
-//         "subjectCode",
-//         "description",
-//         "instructor",
-//         "schoolYear",
-//         "semester",
-//       ],
-//       group: [
-//         "subjectCode",
-//         "description",
-//         "instructor",
-//         "schoolYear",
-//         "semester",
-//       ],
-//     });
+  try {
+    const subjects = await gradeModel.findAll({
+      where: { instructorId: Number(instructorId) },
+      order: [
+        ["schoolYear", "DESC"],
+        ["semester", "ASC"],
+        ["createdAt", "ASC"],
+      ],
+    });
 
-//     // Fetch all students grouped by subjectCode
-//     const students = await gradeModel.findAll({
-//       where: { semester, schoolYear },
-//       attributes: ["studentId", "studentName", "subjectCode"],
-//     });
+    if (!subjects.length) {
+      return res
+        .status(404)
+        .json({ message: "No subjects found for this instructor." });
+    }
 
-//     // Map subjects and attach students to each subject
-//     const subjectList = subjects.map((subject) => {
-//       return {
-//         subjectCode: subject.subjectCode,
-//         description: subject.description,
-//         instructor: subject.instructor,
-//         schoolYear: subject.schoolYear,
-//         semester: subject.semester,
-//         students: students
-//           .filter((student) => student.subjectCode === subject.subjectCode)
-//           .map((student) => ({
-//             id: student.studentId,
-//             fullName: student.studentName,
-//           })),
-//       };
-//     });
+    // Group subjects by school year and semester
+    const groupedSubjects = subjects.reduce((acc, subject) => {
+      const key = `${subject.schoolYear} - ${subject.semester}`;
 
-//     return res.status(200).json(subjectList);
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: error.message });
-//   }
-// };
+      if (!acc[key]) {
+        acc[key] = {
+          schoolYear: subject.schoolYear,
+          semester: subject.semester,
+          subjects: [],
+        };
+      }
+
+      // Ensure unique subjects using a Set
+      const existingSubjectIds = new Set(
+        acc[key].subjects.map((s) => s.subjectId)
+      );
+
+      if (!existingSubjectIds.has(subject.subjectId)) {
+        acc[key].subjects.push({
+          subjectId: subject.subjectId,
+          subjectCode: subject.subjectCode,
+          description: subject.description,
+          course: subject.course,
+          instructor: subject.instructor,
+          grade: subject.grade,
+          remarks: subject.remarks,
+        });
+      }
+
+      return acc;
+    }, {});
+
+    return res.status(200).json({
+      academicRecords: Object.values(groupedSubjects),
+    });
+  } catch (error) {
+    console.error("Error fetching subjects:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 const getAllSubjectWithInstructor = async (req, res) => {
   const { name, semester, schoolYear } = req.query;
@@ -282,6 +310,8 @@ const getAllSubjectWithInstructor = async (req, res) => {
         "instructor",
         "schoolYear",
         "semester",
+        "yearLevel",
+        "course",
       ],
       group: [
         "subjectCode",
@@ -290,6 +320,8 @@ const getAllSubjectWithInstructor = async (req, res) => {
         "instructor",
         "schoolYear",
         "semester",
+        "yearLevel",
+        "course",
       ],
       order: [
         ["schoolYear", "DESC"],
@@ -312,6 +344,8 @@ const getAllSubjectWithInstructor = async (req, res) => {
       instructorId: subject.instructorId,
       schoolYear: subject.schoolYear,
       semester: subject.semester,
+      yearLevel: subject.yearLevel,
+      course: subject.course,
       students: students
         .filter((student) => student.subjectCode === subject.subjectCode)
         .map((student) => ({
@@ -343,6 +377,8 @@ const getClassByInstructorSemSySubjectCode = async (req, res) => {
         "instructor",
         "schoolYear",
         "semester",
+        "course",
+        "yearLevel",
       ],
     });
 
@@ -365,6 +401,8 @@ const getClassByInstructorSemSySubjectCode = async (req, res) => {
       instructorId: subject.instructorId,
       schoolYear: subject.schoolYear,
       semester: subject.semester,
+      course: subject.course,
+      yearLevel: subject.yearLevel,
       students: students.map((student) => ({
         id: student.id,
         studentId: student.studentId,
@@ -453,4 +491,5 @@ module.exports = {
   getClassByInstructorSemSySubjectCode,
   removeStudentFromClass,
   addStudentToClass,
+  getAllSubjectByInstructor,
 };
