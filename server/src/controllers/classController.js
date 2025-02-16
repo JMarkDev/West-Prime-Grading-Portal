@@ -187,9 +187,14 @@ const getStudentSubjectsBySemSY = async (req, res) => {
     });
 
     if (!subjects.length) {
-      return res
-        .status(404)
-        .json({ message: "No subjects found for this student." });
+      return res.status(200).json({
+        studentId: studentData?.studentId || studentId, // Use studentData if available
+        studentName: `${studentData.firstName} ${studentData.middleInitial}. ${studentData.lastName}`, // Fallback if name is missing
+        address: studentData?.address, // Default address
+        course: studentData?.student?.course,
+        yearLevel: studentData?.student?.yearLevel,
+        academicRecords: [], // Return an empty array instead of 404
+      });
     }
 
     // Group subjects by school year and semester
