@@ -65,6 +65,8 @@ export const addStudentToClass = createAsyncThunk(
       instructor,
       semester,
       schoolYear,
+      course,
+      yearLevel,
     },
     { rejectWithValue }
   ) => {
@@ -79,6 +81,8 @@ export const addStudentToClass = createAsyncThunk(
         instructor,
         semester,
         schoolYear,
+        course,
+        yearLevel,
       };
 
       const response = await axios.post("/classes/add-student", data);

@@ -77,6 +77,8 @@ const AddClassForm = ({
     instructor,
     semester,
     schoolYear,
+    course,
+    yearLevel,
   }) => {
     try {
       await dispatch(
@@ -90,6 +92,8 @@ const AddClassForm = ({
           instructor,
           semester,
           schoolYear,
+          course,
+          yearLevel,
         })
       ).unwrap();
 
@@ -220,6 +224,8 @@ const AddClassForm = ({
                                   instructor: selectedSubject?.instructor,
                                   semester: selectedSubject?.semester,
                                   schoolYear: selectedSubject?.schoolYear,
+                                  course: selectedSubject?.course,
+                                  yearLevel: selectedSubject?.yearLevel,
                                 });
                               }}
                               className="px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
