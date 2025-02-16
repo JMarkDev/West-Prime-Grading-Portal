@@ -36,6 +36,52 @@ const Reports = () => {
     }
   }, [dispatch, searchTerm, yearLevel, course, schoolYear]);
 
+  const handleDownloadCSV = () => {
+    const headers = [
+      "Full Name",
+      "Course",
+      "Year Level",
+      "School Year",
+      "Email",
+      "Contact Number",
+      "Address",
+    ];
+
+    const formatFieldCsv = (field) => {
+      if (/[,]/.test(field)) {
+        return `"${field}"`;
+      }
+
+      return field;
+    };
+
+    const rows = allStudents.map((student) => {
+      return [
+        formatFieldCsv(
+          ` ${student.lastName}, ${student.firstName} ${student.middleInitial}.`
+        ),
+        formatFieldCsv(student.student.course),
+        formatFieldCsv(student.student.yearLevel),
+        formatFieldCsv(student.student.schoolYear),
+        formatFieldCsv(student.email),
+        formatFieldCsv(student.contactNumber),
+        formatFieldCsv(student.address),
+      ];
+    });
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "students.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div>
       <div className="flex  gap-5 lg:flex-row flex-col">
@@ -106,7 +152,10 @@ const Reports = () => {
                 </div>
               </div>
             </div>
-            <button className=" w-fit bg-blue-600 hover:bg-blue-700 text-white p-2 px-4 l rounded-md ">
+            <button
+              onClick={() => handleDownloadCSV()}
+              className=" w-fit bg-blue-600 hover:bg-blue-700 text-white p-2 px-4 l rounded-md "
+            >
               Download Report
             </button>
           </div>
