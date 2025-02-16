@@ -3,15 +3,19 @@ import {
   fetchStudentSubjectsBySemSY,
   getStudentAllSubjects,
 } from "../../services/classSlice";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getUserData } from "../../services/authSlice";
 import { logoutUser } from "../../services/authSlice";
+import html2pdf from "html2pdf.js";
+import { FaDownload } from "react-icons/fa";
+import DownloadGrades from "./DownloadGrades";
 
 const ViewGrade = () => {
   const dispatch = useDispatch();
   const studentAllSubjects = useSelector(getStudentAllSubjects);
   const userData = useSelector(getUserData);
+  const contentRef = useRef();
 
   useEffect(() => {
     dispatch(fetchStudentSubjectsBySemSY(userData?.studentId));
@@ -19,6 +23,21 @@ const ViewGrade = () => {
 
   const handleLogout = () => {
     dispatch(logoutUser());
+  };
+
+  const handleDownloadPDF = () => {
+    const element = contentRef.current;
+
+    const options = {
+      margin: 0.3,
+      filename: "Grades.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+
+    // Convert HTML content into PDF
+    html2pdf().set(options).from(element).save();
   };
 
   return (
@@ -42,6 +61,7 @@ const ViewGrade = () => {
               <span className="text-gray-600">Address:</span>{" "}
               {studentAllSubjects?.address}
             </p>
+
             <p className="text-gray-800 font-medium">
               <span className="text-gray-600">Course:</span>{" "}
               {studentAllSubjects?.course}
@@ -55,11 +75,24 @@ const ViewGrade = () => {
         <div className="absolute top-0 right-0">
           <button
             onClick={handleLogout}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 rounded py-1"
+            className="bg-red-600 hover:bg-red-700 text-white px-4 rounded py-1"
           >
             Logout
           </button>
         </div>
+      </div>
+      {/* Download Grades Button */}
+      <div className="flex justify-end mt-4">
+        <button
+          onClick={handleDownloadPDF}
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow-md transition duration-200"
+        >
+          <FaDownload />
+          Download Grades
+        </button>
+      </div>
+      <div className="hidden ">
+        <DownloadGrades contentRef={contentRef} />
       </div>
 
       {/* Grades Table */}
@@ -74,10 +107,14 @@ const ViewGrade = () => {
                 {/* Table Header */}
                 <thead className="bg-blue-600 text-white">
                   <tr>
-                    <th className="px-3 py-2 text-left">Subject Code</th>
-                    <th className="px-3 py-2 text-left">Description</th>
-                    <th className="px-3 py-2">Grade</th>
-                    <th className="px-3 py-2">Remarks</th>
+                    <th className="px-3 py-2 text-left text-nowrap">
+                      Subject Code
+                    </th>
+                    <th className="px-3 py-2 text-left text-nowrap">
+                      Description
+                    </th>
+                    <th className="px-3 py-2 text-nowrap">Grade</th>
+                    <th className="px-3 py-2 text-nowrap">Remarks</th>
                   </tr>
                 </thead>
 
@@ -97,7 +134,9 @@ const ViewGrade = () => {
                           subject.grade > 3 ? "text-red-600" : "text-gray-600"
                         } text-center`}
                       >
-                        {subject.grade}
+                        {subject.grade !== null
+                          ? parseFloat(subject.grade).toFixed(2)
+                          : null}
                       </td>
                       <td
                         className={`px-3 py-2 font-medium text-center ${
