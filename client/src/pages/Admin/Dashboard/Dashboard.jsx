@@ -126,10 +126,10 @@ const Dashboard = () => {
         </div> */}
 
         <div className="bg-white w-full overflow-x-auto shadow-md rounded-lg p-4">
-          <h2 className="text-center text-xl font-semibold mb-3">
+          <h2 className=" text-xl font-semibold mb-3">
             Student Enrollment by School Year
           </h2>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto mt-5">
             <ResponsiveContainer width="100%" height={400} minWidth={600}>
               <BarChart data={studentByYear}>
                 <XAxis dataKey="year" />
@@ -162,7 +162,7 @@ const Dashboard = () => {
           </div>
 
           {/* ✅ Wrap the ResponsiveContainer in a div with a minimum width */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto mt-5">
             <ResponsiveContainer width="100%" height={400} minWidth={600}>
               <BarChart data={studentByCourse}>
                 {/* ✅ Prevent X-Axis labels from overlapping */}
