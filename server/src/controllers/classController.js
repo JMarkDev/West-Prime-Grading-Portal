@@ -450,6 +450,8 @@ const addStudentToClass = async (req, res) => {
     instructor,
     semester,
     schoolYear,
+    course,
+    yearLevel,
   } = req.body;
 
   try {
@@ -475,6 +477,8 @@ const addStudentToClass = async (req, res) => {
       instructor,
       semester,
       schoolYear,
+      course,
+      yearLevel,
       grade: null,
       remarks: null,
     });
