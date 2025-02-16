@@ -8,7 +8,7 @@ import {
 import { getAllCourses, fetchCourses } from "../../../services/coursesSlice";
 
 import { IoSearch } from "react-icons/io5";
-import StudentsTable from "../../../components/table/StudentsTable";
+import ReportTable from "../../../components/table/ReportTable";
 import {
   getAllSchoolYears,
   fetchSchoolYears,
@@ -163,7 +163,7 @@ const Reports = () => {
       </div>
 
       <div className="mt-8">
-        <StudentsTable allStudents={allStudents} />
+        <ReportTable allStudents={allStudents} />
       </div>
     </div>
   );
