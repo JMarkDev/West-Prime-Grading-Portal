@@ -76,7 +76,6 @@ const Dashboard = () => {
     const handleFetchStudentByYear = async () => {
       try {
         const response = await api.get("/students/get-allstudent/schoolyear");
-        console.log(response.data);
         setStudentByYear(response.data);
       } catch (error) {
         console.error(error);
@@ -137,7 +136,7 @@ const Dashboard = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="total" fill="#3498db" name="Total" />
+                <Bar dataKey="total" fill="#3498db" name="School Year" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -176,7 +175,7 @@ const Dashboard = () => {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="total" fill="#9b59b6" name="Total" />
+                <Bar dataKey="total" fill="#9b59b6" name="Course" />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -50,61 +50,72 @@ const StudentDetails = () => {
 
       {/* Grades Table */}
       <div className="mt-6 grid lg:grid-cols-2 grid-cols-1 gap-5">
-        {studentAllSubjects?.academicRecords?.map((record, index) => (
-          <div key={index} className="bg-white p-4 rounded-lg shadow-md border">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">
-              SY {record.schoolYear} ({record.semester})
-            </h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-gray-800 border-collapse rounded-lg shadow-sm">
-                {/* Table Header */}
-                <thead className="bg-blue-600 text-white">
-                  <tr>
-                    <th className="px-3 py-2 text-left">Subject Code</th>
-                    <th className="px-3 py-2 text-left">Description</th>
-                    <th className="px-3 py-2">Grade</th>
-                    <th className="px-3 py-2">Remarks</th>
-                  </tr>
-                </thead>
+        {studentAllSubjects?.academicRecords?.length > 0 ? (
+          studentAllSubjects?.academicRecords?.map((record, index) => (
+            <div
+              key={index}
+              className="bg-white p-4 rounded-lg shadow-md border"
+            >
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                SY {record.schoolYear} ({record.semester})
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-gray-800 border-collapse rounded-lg shadow-sm">
+                  {/* Table Header */}
+                  <thead className="bg-blue-600 text-white">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Subject Code</th>
+                      <th className="px-3 py-2 text-left">Description</th>
+                      <th className="px-3 py-2">Grade</th>
+                      <th className="px-3 py-2">Remarks</th>
+                    </tr>
+                  </thead>
 
-                {/* Table Body */}
-                <tbody>
-                  {record.subjects.map((subject, index) => (
-                    <tr
-                      key={index}
-                      className={`border-b hover:bg-gray-100 ${
-                        index % 2 === 0 ? "bg-gray-50" : "bg-white"
-                      }`}
-                    >
-                      <td className="px-3 py-2">{subject.subjectCode}</td>
-                      <td className="px-3 py-2">{subject.description}</td>
-                      <td
-                        className={`px-3 py-2 font-bold ${
-                          subject.grade > 3 ? "text-red-600" : "text-gray-600"
-                        } text-center`}
-                      >
-                        {subject.grade}
-                      </td>
-                      <td
-                        className={`px-3 py-2 font-medium text-center ${
-                          subject.grade < 3.0
-                            ? "text-green-600"
-                            : "text-red-600"
+                  {/* Table Body */}
+                  <tbody>
+                    {record.subjects.map((subject, index) => (
+                      <tr
+                        key={index}
+                        className={`border-b hover:bg-gray-100 ${
+                          index % 2 === 0 ? "bg-gray-50" : "bg-white"
                         }`}
                       >
-                        {subject.grade
-                          ? subject.grade > 3.0
-                            ? "Failed"
-                            : "Passed"
-                          : ""}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <td className="px-3 py-2">{subject.subjectCode}</td>
+                        <td className="px-3 py-2">{subject.description}</td>
+                        <td
+                          className={`px-3 py-2 font-bold ${
+                            subject.grade > 3 ? "text-red-600" : "text-gray-600"
+                          } text-center`}
+                        >
+                          {subject.grade !== null
+                            ? parseFloat(subject.grade).toFixed(2)
+                            : null}
+                        </td>
+                        <td
+                          className={`px-3 py-2 font-medium text-center ${
+                            subject.grade < 3.0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {subject.grade
+                            ? subject.grade > 3.0
+                              ? "Failed"
+                              : "Passed"
+                            : ""}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <h2 className="text-2xl font-semibold text-gray-800 p-4">
+            No Subjects Enrolled
+          </h2>
+        )}
       </div>
     </div>
   );
