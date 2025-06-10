@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { fetchUser, getUserData } from "../../services/authSlice";
+import { fetchUser, getUserData, logoutUser } from "../../services/authSlice";
 import Profile from "../../components/profile_image/Profile";
 import api from "../../api/axios";
 import { useToast } from "../../hooks/useToast";
@@ -82,6 +82,7 @@ const UserProfile = () => {
         `/users/update-profile/id/${id}`,
         formData
       );
+
       if (response.data.status === "success") {
         toast.success(response.data.message);
         dispatch(fetchUser());
@@ -103,8 +104,6 @@ const UserProfile = () => {
       newPassword: newPassword,
       confirmPassword: confirmPassword,
     };
-    console.log(data);
-    console.log("clcik");
 
     try {
       const response = await api.put(`/users/update-password/${id}`, data);
@@ -124,9 +123,13 @@ const UserProfile = () => {
     setShowPass(!showPass);
   };
 
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
+
   return (
     <>
-      <div className="flex text-sm flex-col lg:flex-row w-full gap-5">
+      <div className="flex text-sm flex-col md:flex-row w-full gap-5">
         <div className="flex flex-col gap-3 justify-center items-center p-4 bg-white border border-gray-300 shadow-lg min-w-[250px] h-fit rounded-lg">
           {loader && <Loading />}
           {edit ? (
@@ -134,7 +137,6 @@ const UserProfile = () => {
           ) : (
             <Profile image={data.image} setValue={setValue} />
           )}
-
           <h1 className="font-bold text-lg text-gray-800 text-center">
             {fullName}
           </h1>
@@ -143,7 +145,7 @@ const UserProfile = () => {
           </span>
         </div>
         <div className="flex  flex-col flex-grow sm:border md:border-gray-300 md:shadow-lg rounded-lg">
-          <ul className="flex gap-2 md:border md:border-gray-300 w-full h-12 items-center md:p-4 ">
+          <ul className="flex gap-2 md:border md:border-gray-300 w-full h-12 items-center p-4 ">
             <li
               className={`cursor-pointer  text-sm text-nowrap px-2 py-1 rounded-md ${
                 activeTab === "profile"
@@ -164,63 +166,133 @@ const UserProfile = () => {
             >
               Change password
             </li>
+            <div className="ml-auto">
+              <li
+                className="cursor-pointer text-sm text-nowrap px-2 py-1 rounded-md bg-red-600 text-white"
+                onClick={handleLogout}
+              >
+                Logout
+              </li>
+            </div>
           </ul>
-          <div className="py-6  md:px-4 text-gray-600">
+          <div className="p-4 text-gray-600">
+            {/* {activeTab === "profile" && (
+              <div className="flex text-lg uppercase flex-col gap-3">
+                <div>
+                  <h1 className="text-lg uppercase text-gray-900 ">
+                    STUDENT ID:{" "}
+                    <span className="font-semibold">{userData?.studentId}</span>
+                  </h1>
+                  <h1 className="  text-gray-900 ">
+                    STUDENT NAME:{" "}
+                    <span className="font-semibold">
+                      {`${userData?.lastName}, ${userData?.firstName} ${userData?.middleInitial}.`}
+                    </span>
+                  </h1>
+                  <h1 className="  text-gray-900 ">
+                    ADDRESS:{" "}
+                    <span className="font-semibold">{userData?.address}</span>
+                  </h1>
+                  <h1 className="  text-gray-900 ">
+                    COURSE:{" "}
+                    <span className="font-semibold">{userData?.address}</span>
+                  </h1>
+                  <h1 className="  text-gray-900 ">
+                    YEAR LEVEL:{" "}
+                    <span className="font-semibold">
+                      {userData?.student.yearLevel}
+                    </span>
+                  </h1>
+                  <h1 className="  text-gray-900 ">
+                    EMAIL:{" "}
+                    <span className="font-semibold">{userData?.email}</span>
+                  </h1>
+                </div>
+                <div className="flex  justify-end">
+                  {edit ? (
+                    <button
+                      onClick={() => setEdit(!edit)}
+                      type="button"
+                      className="w-fit text-sm mt-4 text-center bg-blue-500 hover:bg-blue-700 text-white text-nowrap px-4 rounded-lg p-2"
+                    >
+                      Edit Profile
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubmit(onSubmit)}
+                      type="button"
+                      className="w-fit text-sm mt-4 text-center bg-blue-500 hover:bg-blue-700 text-white text-nowrap px-4 rounded-lg p-2"
+                    >
+                      Save Profile
+                    </button>
+                  )}
+                </div>
+              </div>
+            )} */}
+
             {activeTab === "profile" && (
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-5">
+                {userData?.student?.studentId && (
+                  <div className="flex items-center gap-5">
+                    <label
+                      htmlFor=""
+                      className="font-semibold  text-gray-700 w-1/4"
+                    >
+                      Student ID:
+                    </label>
+                    <input
+                      value={`${userData?.student.studentId}` || ""}
+                      disabled={true}
+                      className="rounded-lg cursor-not-allowed border bg-gray-200 border-gray-200 flex-grow p-2 border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                      type="text"
+                    />
+                  </div>
+                )}
+
+                <div className="flex  items-center gap-5">
                   <label
                     htmlFor=""
-                    className="text-md font-semibold text-gray-700 w-1/4"
+                    className="font-semibold  text-gray-700 w-1/4"
                   >
-                    First name
+                    Full name:
                   </label>
                   <input
-                    {...register("firstName")}
-                    disabled={edit ? true : false}
-                    className="rounded-lg border bg-gray-200 border-gray-200 flex-grow p-2 text-sm border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    value={
+                      `${userData?.lastName}, ${userData?.firstName} ${userData?.middleInitial}.` ||
+                      ""
+                    }
+                    disabled={true}
+                    className="rounded-lg cursor-not-allowed border bg-gray-200 border-gray-200 flex-grow p-2 border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                     type="text"
                   />
                 </div>
-                <div className="flex items-center gap-5">
-                  <label
-                    htmlFor=""
-                    className="text-md font-semibold text-gray-700 w-1/4"
-                  >
-                    Last name
-                  </label>
-                  <input
-                    {...register("lastName")}
-                    disabled={edit ? true : false}
-                    className="rounded-lg border bg-gray-200 border-gray-200 flex-grow p-2 text-sm border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                    type="text"
-                  />
-                </div>
-                <div className="flex items-center gap-5">
-                  <label
-                    htmlFor=""
-                    className="text-md font-semibold text-gray-700 w-1/4"
-                  >
-                    Middle initial
-                  </label>
-                  <input
-                    {...register("middleInitial")}
-                    disabled={edit ? true : false}
-                    className="rounded-lg border bg-gray-200 border-gray-200 flex-grow p-2 text-sm border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
-                    type="text"
-                  />
-                </div>
+                {userData?.student?.course && (
+                  <div className="flex  items-center gap-5">
+                    <label
+                      htmlFor=""
+                      className="font-semibold  text-gray-700 w-1/4"
+                    >
+                      Course:
+                    </label>
+                    <input
+                      value={`${userData?.student?.course}` || ""}
+                      disabled={true}
+                      className="rounded-lg cursor-not-allowed border bg-gray-200 border-gray-200 flex-grow p-2 border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                      type="text"
+                    />
+                  </div>
+                )}
 
                 <div className="flex items-center gap-5">
                   <label
                     htmlFor=""
-                    className="text-md font-semibold text-gray-700 w-1/4"
+                    className="font-semibold  text-gray-700 w-1/4"
                   >
-                    Contact number
+                    Contact number:
                   </label>
                   <input
                     {...register("contactNumber")}
-                    className="rounded-lg border  bg-gray-200 border-gray-200 flex-grow p-2 text-sm border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    className="rounded-lg border  bg-gray-200 border-gray-200 flex-grow p-2  border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                     type="text"
                     disabled={edit ? true : false}
                   />
@@ -230,11 +302,11 @@ const UserProfile = () => {
                     htmlFor=""
                     className="text-md font-semibold text-gray-700 w-1/4"
                   >
-                    Email Address
+                    Email Address:
                   </label>
                   <input
                     {...register("email")}
-                    className="rounded-lg border  bg-gray-200 border-gray-200 flex-grow p-2 text-sm border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    className="rounded-lg border  bg-gray-200 border-gray-200 flex-grow p-2  border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                     type="text"
                     disabled={edit ? true : false}
                   />
@@ -244,11 +316,11 @@ const UserProfile = () => {
                     htmlFor=""
                     className="text-md font-semibold text-gray-700 w-1/4"
                   >
-                    Address
+                    Address:
                   </label>
                   <input
                     {...register("address")}
-                    className="rounded-lg border  bg-gray-200 border-gray-200 flex-grow p-2 text-sm border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                    className="rounded-lg border  bg-gray-200 border-gray-200 flex-grow p-2 border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                     type="text"
                     disabled={edit ? true : false}
                   />
@@ -275,61 +347,6 @@ const UserProfile = () => {
                 </div>
               </div>
             )}
-            {/* {activeTab === "update" && (
-              <div>
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-5">
-                    <label
-                      htmlFor=""
-                      className="text-md font-semibold text-gray-700 w-1/4" // Adjust this width as needed
-                    >
-                      New email
-                    </label>
-                    <input
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      className={`rounded-lg focus:ring-blue-500 focus:border-blue-100 border-2 bg-gray-200 border-gray-200 flex-grow p-2 text-sm`}
-                      type="text"
-                      placeholder="Enter new email"
-                    />
-                  </div>
-
-                  <div className="flex items-center relative gap-5">
-                    <label
-                      htmlFor=""
-                      className="text-md font-semibold text-gray-700 w-1/4" // Adjust this width as needed
-                    >
-                      OTP
-                    </label>
-                    <input
-                      onChange={(e) => setOTP(e.target.value)}
-                      className="rounded-lg focus:ring-blue-500 focus:border-blue-100 border-2 bg-gray-200 border-gray-200 flex-grow p-2 text-sm"
-                      type="text"
-                      placeholder="Enter 4 digits OTP"
-                    />
-                  </div>
-
-                  <div className="flex justify-end">
-                    {sendOtp ? (
-                      <button
-                        type="button"
-                        onClick={handleSendOTP}
-                        className="w-fit mt-4 bg-blue-500 hover:bg-blue-700 text-white text-nowrap px-4 rounded-lg p-2 cursor-pointer"
-                      >
-                        Send code
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleChangeUsername}
-                        className=" w-fit mt-4 bg-blue-500 hover:bg-blue-700 text-white text-nowrap px-4 rounded-lg p-2"
-                      >
-                        Verify code
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )} */}
 
             {activeTab === "password" && (
               <div className="flex flex-col gap-3">

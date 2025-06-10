@@ -93,12 +93,14 @@ const ClassTable = ({ allClasses }) => {
                 <th className="px-4 py-3 text-nowrap">Instructor</th>
                 <th className="px-4 py-3 text-nowrap">Semester</th>
                 <th className="px-4 py-3 text-nowrap">Course</th>
+                {/* <th className="px-4 py-3 text-nowrap">Section</th> */}
 
                 <th className="px-4 py-3 text-nowrap">School Year</th>
                 <th className="px-4 py-3 text-center text-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody>
+              {/* {console.log(allClasses)} */}
               {allClasses.map(
                 (
                   {
@@ -109,6 +111,7 @@ const ClassTable = ({ allClasses }) => {
                     schoolYear,
                     course,
                     instructorId,
+                    section,
                   },
                   index
                 ) => (
@@ -142,6 +145,9 @@ const ClassTable = ({ allClasses }) => {
                     <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
                       {course}
                     </td>
+                    {/* <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
+                      {section}
+                    </td> */}
                     <td className="px-4 py-4 whitespace-nowrap overflow-hidden text-ellipsis max-w-xs">
                       {schoolYear}
                     </td>
@@ -195,7 +201,7 @@ const ClassTable = ({ allClasses }) => {
                               <span>
                                 <FaRegEdit className="h-4 w-4" />
                               </span>
-                              Manage Class
+                              Edit Class
                             </button>
                             <button
                               onClick={(e) => {

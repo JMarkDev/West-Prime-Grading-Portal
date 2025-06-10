@@ -66,6 +66,19 @@
   background: #555;
 }
 @media print {
+  td,
+  th {
+    padding-bottom: 0.25rem !important; /* Tailwind's pb-1 */
+    padding-top: 0.25rem !important;
+  }
+
+  tr {
+    line-height: 1 !important;
+  }
+
+  .text-xs {
+    font-size: 0.65rem !important;
+  }
   table {
     break-inside: avoid;
   }
@@ -78,5 +91,8 @@
   }
   tfoot {
     display: table-footer-group;
+  }
+  .page-break {
+    page-break-after: always;
   }
 }

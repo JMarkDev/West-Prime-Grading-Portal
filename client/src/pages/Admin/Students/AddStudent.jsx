@@ -34,6 +34,8 @@ const AddStudent = ({ showModal, setShowModal }) => {
   const [courseError, setCourseError] = useState("");
   const [yearLevelError, setYearLevelError] = useState("");
   const [schoolYearError, setSchoolYearError] = useState("");
+  const [statusError, setStatusError] = useState("");
+  const [sectionError, setSectionError] = useState("");
 
   useEffect(() => {
     dispatch(fetchCourses());
@@ -48,7 +50,7 @@ const AddStudent = ({ showModal, setShowModal }) => {
     setLastnameError("");
     setMiddleInitialError("");
     setEmailError("");
-
+    setStatusError("");
     setContactError("");
     setPasswordError("");
     setConfirmpasswordError("");
@@ -56,6 +58,7 @@ const AddStudent = ({ showModal, setShowModal }) => {
     setCourseError("");
     setYearLevelError("");
     setSchoolYearError("");
+    setSectionError("");
 
     try {
       const response = await api.post("/auth/register", data);
@@ -104,6 +107,12 @@ const AddStudent = ({ showModal, setShowModal }) => {
               break;
             case "confirmPassword":
               setConfirmpasswordError(error.msg);
+              break;
+            case "status":
+              setStatusError(error.msg);
+              break;
+            case "section":
+              setSectionError(error.msg);
               break;
             default:
               console.log(error);
@@ -280,6 +289,8 @@ const AddStudent = ({ showModal, setShowModal }) => {
                       placeholder=" "
                     >
                       <option value="">Select Year Level</option>
+                      <option value="Grade-11">Grade 11</option>
+                      <option value="Grade-12">Grade 12</option>
                       <option value="1st Year">1st Year</option>
                       <option value="2nd Year">2nd Year</option>
                       <option value="3rd Year">3rd Year</option>
@@ -322,6 +333,64 @@ const AddStudent = ({ showModal, setShowModal }) => {
 
                     {schoolYearError && (
                       <span className="text-red-500">{schoolYearError}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between md:flex-row flex-col gap-5">
+                  <div className="flex flex-col flex-grow ">
+                    <label
+                      htmlFor="status"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Student Status
+                    </label>
+                    <select
+                      {...register("status")}
+                      type="text"
+                      id="status"
+                      className={`${
+                        statusError ? "border-red-500 " : "border-gray-300 "
+                      } p-2.5 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer`}
+                      placeholder=" "
+                    >
+                      <option value="">Select Student Status</option>
+                      <option value="Regular">Regular</option>
+                      <option value="Irregular">Irregular</option>
+                    </select>
+
+                    {statusError && (
+                      <span className="text-red-500">{statusError}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between md:flex-row flex-col gap-5">
+                  <div className="flex flex-col flex-grow ">
+                    <label
+                      htmlFor="section"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Section
+                    </label>
+                    <select
+                      {...register("section")}
+                      type="text"
+                      id="section"
+                      className={`${
+                        sectionError ? "border-red-500 " : "border-gray-300 "
+                      } p-2.5 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 appearance-none   focus:outline-none focus:ring-0 focus:border-blue-600 peer`}
+                      placeholder=" "
+                    >
+                      <option value="">Select Student Section</option>
+                      <option value="Section A">Section A</option>
+                      <option value="Section B">Section B</option>
+                      <option value="Section C">Section C</option>
+                      <option value="Section D">Section D</option>
+                    </select>
+
+                    {sectionError && (
+                      <span className="text-red-500">{sectionError}</span>
                     )}
                   </div>
                 </div>

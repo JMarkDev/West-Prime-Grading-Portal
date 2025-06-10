@@ -76,7 +76,12 @@ const Dashboard = () => {
     const handleFetchStudentByYear = async () => {
       try {
         const response = await api.get("/students/get-allstudent/schoolyear");
-        setStudentByYear(response.data);
+        const sorted = response?.data.sort((a, b) => {
+          const yearA = parseInt(a.year.split("-")[0], 10);
+          const yearB = parseInt(b.year.split("-")[0], 10);
+          return yearB - yearA; // Ascending
+        });
+        setStudentByYear(sorted);
       } catch (error) {
         console.error(error);
       }

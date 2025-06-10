@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -8,19 +8,35 @@ import {
 import Back from "../../components/buttons/Back";
 import api from "../../api/axios";
 import { useToast } from "../../hooks/useToast";
+import { MdLocalPrintshop } from "react-icons/md";
+import { useReactToPrint } from "react-to-print";
+import PrintGrades from "./PrintGrades";
 
 const InputGrades = () => {
   const location = useLocation();
   const toast = useToast();
   const { instructorId, semester, schoolYear, subjectCode } =
-    location.state || {}; // Handle undefined state
+    location.state || {};
 
   const dispatch = useDispatch();
   const classDetails = useSelector(getClassByInstructor);
   const [loading, setLoading] = useState(false);
-
-  // Store updated grades as an object { studentId: grade }
   const [grades, setGrades] = useState({});
+  const contentRef = useRef(null);
+  const [allSubmission, setAllSubmission] = useState([]);
+  const [deadlinePassed, setDeadlinePassed] = useState(false);
+
+  useEffect(() => {
+    const getAllSubmission = async () => {
+      try {
+        const response = await api.get("/submission");
+        setAllSubmission(response.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getAllSubmission();
+  }, []);
 
   useEffect(() => {
     dispatch(
@@ -33,31 +49,56 @@ const InputGrades = () => {
     );
   }, [dispatch, instructorId, semester, schoolYear, subjectCode]);
 
+  useEffect(() => {
+    // Check deadline when both allSubmission and classDetails are available
+    if (allSubmission.length > 0 && classDetails) {
+      // Find the matching submission deadline
+      const matchingSubmission = allSubmission.find(
+        (sub) => sub.schoolYear === schoolYear && sub.semester === semester
+      );
+
+      // Check if the deadline has passed
+      const isDeadlinePassed =
+        matchingSubmission &&
+        new Date(matchingSubmission.dateAndTime) < new Date();
+
+      setDeadlinePassed(isDeadlinePassed);
+    }
+  }, [allSubmission, classDetails, schoolYear, semester]);
+
   const handleGradeChange = (studentId, value) => {
-    if (value === "") {
-      // Allow clearing the grade completely
-      setGrades((prev) => ({
-        ...prev,
-        [studentId]: "", // Explicitly set to empty string
-      }));
+    const upperValue = value.toUpperCase();
+
+    // Always store what user types, even partial inputs like '1.'
+    setGrades((prev) => ({
+      ...prev,
+      [studentId]: upperValue,
+    }));
+
+    // Allow typing 'INC' progressively
+    if ("INC".startsWith(upperValue)) return;
+
+    // Allow decimals during typing (e.g., '1.', '1.5')
+    const validNumberPattern = /^\d{0,1}(\.\d{0,2})?$/;
+    if (validNumberPattern.test(upperValue)) {
+      const parsed = parseFloat(upperValue);
+      if (!isNaN(parsed) && parsed >= 1.0 && parsed <= 5.0) {
+        // Optionally reformat later (e.g., onBlur)
+      }
       return;
     }
 
-    let gradeValue = parseFloat(value);
-
-    // Ensure grade is within 1.0 - 5.0 range
-    if (gradeValue >= 1.0 && gradeValue <= 5.0) {
-      setGrades((prev) => ({
-        ...prev,
-        [studentId]: gradeValue,
-      }));
-    }
+    // If it's invalid input (like '15', '1A', etc.), don't update state further
   };
 
-  // Save grades function
   const handleSaveGrades = async () => {
+    if (deadlinePassed) {
+      toast.error("Grade submission deadline has passed!");
+      return;
+    }
+
     const updatedGrades = Object.entries(grades).map(([id, grade]) => ({
-      id: parseInt(id), // Ensure correct ID format
+      id: parseInt(id),
       grade,
     }));
     setLoading(true);
@@ -85,10 +126,20 @@ const InputGrades = () => {
     }
   };
 
+  const handleReactToPrint = useReactToPrint({
+    contentRef,
+    documentTitle: "Grades",
+    onAfterPrint: () => console.log("Printing completed"),
+    onPrintError: (errorLocation, error) => {
+      console.log("Error", errorLocation, error);
+    },
+  });
+
   return (
     <div className="p-6 max-w-4xl mx-auto mt-5 bg-white dark:bg-gray-900 shadow-lg rounded-lg">
       <Back />
-      {/* Class Information Card */}
+
+      {/* Class Information Section */}
       <div className="bg-blue-100 mt-5 dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {classDetails?.subjectCode} - {classDetails?.description}
@@ -101,13 +152,28 @@ const InputGrades = () => {
           Instructor:{" "}
           <span className="font-semibold">{classDetails?.instructor}</span>
         </p>
+        {/* {deadlinePassed && (
+          <div className="mt-2 text-red-600 font-semibold bg-red-100 dark:bg-red-900/30 dark:text-red-400 p-2 rounded">
+            Grade submission deadline has passed!
+          </div>
+        )} */}
       </div>
 
-      {/* Student Grades Table */}
+      {/* Student Grades Section */}
       <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">
-          Enrolled Students ({classDetails?.students?.length})
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-700 dark:text-white mb-2">
+            Enrolled Students ({classDetails?.students?.length})
+          </h2>
+          <button
+            onClick={handleReactToPrint}
+            className="p-2 mb-4 px-4 flex items-center gap-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <MdLocalPrintshop className="text-xl" /> Print
+          </button>
+        </div>
+
+        {/* Table of Students */}
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white dark:bg-gray-800 border rounded-lg overflow-hidden">
             <thead className="bg-gray-200 dark:bg-gray-700">
@@ -129,7 +195,7 @@ const InputGrades = () => {
             <tbody>
               {classDetails?.students?.map((student, index) => {
                 const grade = grades[student.id] ?? student.grade ?? "";
-                const isFailed = grade > 3.0;
+                const isFailed = grade > 3.0 || grade === "INC";
 
                 return (
                   <tr
@@ -146,14 +212,10 @@ const InputGrades = () => {
                     <td className="p-3 text-gray-600 dark:text-gray-300">
                       {student.fullName}
                     </td>
-
-                    {/* Editable Grade Input */}
                     <td className="p-3 text-gray-600 dark:text-gray-300">
                       <input
-                        type="number"
-                        min="1.0"
-                        max="5.0"
-                        step="0.1"
+                        type="text"
+                        inputMode="decimal"
                         className="w-20 p-2 border border-gray-300 rounded text-center"
                         value={
                           grades[student.id] !== undefined
@@ -163,16 +225,26 @@ const InputGrades = () => {
                         onChange={(e) =>
                           handleGradeChange(student.id, e.target.value)
                         }
+                        disabled={deadlinePassed}
                       />
                     </td>
-
-                    {/* Remarks Column */}
                     <td
                       className={`px-3 py-2 font-medium text-center ${
                         isFailed ? "text-red-600" : "text-green-600"
                       }`}
                     >
-                      {grade ? (isFailed ? "Failed" : "Passed") : "—"}
+                      {grade === "INC"
+                        ? "INCOMPLETE"
+                        : grade === "" || grade === undefined
+                        ? "—"
+                        : !isNaN(parseFloat(grade)) &&
+                          isFinite(grade) &&
+                          parseFloat(grade) >= 1.0 &&
+                          parseFloat(grade) <= 5.0
+                        ? parseFloat(grade) > 3.0
+                          ? "Failed"
+                          : "Passed"
+                        : "—"}
                     </td>
                   </tr>
                 );
@@ -182,18 +254,20 @@ const InputGrades = () => {
         </div>
       </div>
 
+      <div style={{ display: "none" }}>
+        <PrintGrades contentRef={contentRef} />
+      </div>
+
       {/* Save Grades Button */}
-      {/* <button
-        onClick={handleSaveGrades}
-        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg"
-      >
-        Save Grades
-      </button> */}
       <button
-        disabled={loading}
+        disabled={loading || deadlinePassed}
         onClick={handleSaveGrades}
         type="button"
-        className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg"
+        className={`mt-4 ${
+          deadlinePassed
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-blue-600 hover:bg-blue-700"
+        } text-white font-semibold py-2 px-6 rounded-lg`}
       >
         {loading ? (
           <>
@@ -216,6 +290,8 @@ const InputGrades = () => {
             </svg>
             Loading...
           </>
+        ) : deadlinePassed ? (
+          "Deadline Passed"
         ) : (
           "Save Grades"
         )}

@@ -2,34 +2,103 @@ import userProfile from "../../../assets/images/user-profile.png";
 import {
   fetchStudentSubjectsBySemSY,
   getStudentAllSubjects,
+  reset,
 } from "../../../services/classSlice";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import api from "../../../api/axios";
+import { MdLocalPrintshop } from "react-icons/md";
+import { useReactToPrint } from "react-to-print";
+import PrintBySem from "../../Shared/PrintBySem";
+import PrintAllGrades from "../../Shared/PrintAllGrades";
 
 const StudentDetails = () => {
   const dispatch = useDispatch();
   const { id } = useParams();
+  const [profilePic, setProfilePic] = useState(userProfile);
   const studentAllSubjects = useSelector(getStudentAllSubjects);
+  const [filterBySem, setFilterBySem] = useState(null);
+  const [printMode, setPrintMode] = useState("semester"); // 'semester' or 'all'
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      dispatch(reset());
+    };
+  }, [dispatch]);
+
   useEffect(() => {
     dispatch(fetchStudentSubjectsBySemSY(id));
   }, [dispatch, id]);
 
+  useEffect(() => {
+    if (studentAllSubjects.image) {
+      setProfilePic(`${api.defaults.baseURL}${studentAllSubjects.image}`);
+    }
+  }, [studentAllSubjects]);
+
+  const handleReactToPrint = useReactToPrint({
+    contentRef,
+    documentTitle: "Grades",
+    onAfterPrint: () => console.log("Printing completed"),
+    onPrintError: (errorLocation, error) => {
+      console.log("Error", errorLocation, error);
+    },
+  });
+
+  const handlePrint = () => {
+    dispatch(fetchStudentSubjectsBySemSY(id));
+    setPrintMode("all");
+
+    setTimeout(() => {
+      handleReactToPrint();
+    }, 500);
+  };
+
+  const handlePrintBySem = (schoolYear, semester) => {
+    const filtered = studentAllSubjects.academicRecords.filter((acad) => {
+      return acad.schoolYear === schoolYear && acad.semester === semester;
+    });
+    const studentData = {
+      studentName: studentAllSubjects.studentName,
+      studentId: studentAllSubjects.studentId,
+      course: studentAllSubjects.course,
+      yearLevel: studentAllSubjects.yearLevel,
+      academicRecords: filtered,
+    };
+    setFilterBySem(studentData);
+    setPrintMode("semester");
+
+    setTimeout(() => {
+      handleReactToPrint();
+    }, 500);
+  };
+
   return (
-    <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl">
+    <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-xl ">
       {/* Student Profile Section */}
-      <div className="flex items-center gap-6 bg-white p-6 rounded-lg shadow-md border">
+      <div className="flex gap-6 bg-white p-6 rounded-lg shadow-md border">
         {/* Profile Image */}
         <img
-          src={userProfile}
+          src={profilePic}
           alt="User Profile"
           className="w-28 h-28 rounded-full border border-gray-300 shadow-sm"
         />
 
         {/* Student Info */}
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {`${studentAllSubjects?.studentName}`}
+        <div className="uppercase">
+          <h1 className="text-lg uppercase text-gray-900 ">
+            STUDENT ID:{" "}
+            <span className="font-semibold">
+              {studentAllSubjects?.studentId}
+            </span>
+          </h1>
+          <h1 className="  text-gray-900 ">
+            STUDENT NAME:{" "}
+            <span className="font-semibold">
+              {studentAllSubjects?.studentName}
+            </span>
           </h1>
           <div className="mt-2 space-y-1">
             <p className="text-gray-800 font-medium">
@@ -44,11 +113,42 @@ const StudentDetails = () => {
               <span className="text-gray-600">Year Level:</span>{" "}
               {studentAllSubjects?.yearLevel}
             </p>
+            <p className="text-gray-800 font-medium">
+              <span className="text-gray-600">STATUS:</span>{" "}
+              {studentAllSubjects?.status}
+            </p>
+            <p className="text-gray-800 font-medium">
+              <span className="text-gray-600">SECTION:</span>{" "}
+              {studentAllSubjects?.section}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Grades Table */}
+      {studentAllSubjects?.academicRecords?.length > 0 && (
+        <div className="flex my-4 justify-end ml-auto h-fit items-start">
+          <button
+            onClick={() => handlePrint()}
+            className="p-2 px-4 text-sm flex items-center gap-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            <MdLocalPrintshop className="text-xl" /> Print all grades
+          </button>
+        </div>
+      )}
+
+      {/* Hidden Print Components */}
+      <div style={{ display: "none" }}>
+        {printMode === "semester" ? (
+          <PrintBySem filterBySem={filterBySem} contentRef={contentRef} />
+        ) : (
+          <PrintAllGrades
+            studentData={studentAllSubjects}
+            contentRef={contentRef}
+          />
+        )}
+      </div>
+
       <div className="mt-6 grid lg:grid-cols-2 grid-cols-1 gap-5">
         {studentAllSubjects?.academicRecords?.length > 0 ? (
           studentAllSubjects?.academicRecords?.map((record, index) => (
@@ -56,18 +156,33 @@ const StudentDetails = () => {
               key={index}
               className="bg-white p-4 rounded-lg shadow-md border"
             >
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">
-                SY {record.schoolYear} ({record.semester})
-              </h2>
+              <div className="flex justify-between items-center gap-2 mb-3">
+                <h2 className="text-lg font-semibold text-gray-800">
+                  SY {record.schoolYear} ({record.semester})
+                </h2>
+                <button
+                  onClick={() =>
+                    handlePrintBySem(record.schoolYear, record.semester)
+                  }
+                  className="p-2 text-sm flex items-center gap-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                  <MdLocalPrintshop className="text-lg" /> Print grades
+                </button>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-gray-800 border-collapse rounded-lg shadow-sm">
                   {/* Table Header */}
                   <thead className="bg-blue-600 text-white">
                     <tr>
-                      <th className="px-3 py-2 text-left">Subject Code</th>
-                      <th className="px-3 py-2 text-left">Description</th>
-                      <th className="px-3 py-2">Grade</th>
-                      <th className="px-3 py-2">Remarks</th>
+                      <th className="px-3 py-2 text-left text-nowrap">
+                        Subject Code
+                      </th>
+                      <th className="px-3 py-2 text-left text-nowrap">
+                        Description
+                      </th>
+                      <th className="px-3 py-2 text-nowrap">Grade</th>
+                      <th className="px-3 py-2 text-nowrap">Remarks</th>
                     </tr>
                   </thead>
 
@@ -87,9 +202,11 @@ const StudentDetails = () => {
                             subject.grade > 3 ? "text-red-600" : "text-gray-600"
                           } text-center`}
                         >
-                          {subject.grade !== null
+                          {subject.grade !== null && !isNaN(subject.grade)
                             ? parseFloat(subject.grade).toFixed(2)
-                            : null}
+                            : subject.grade === "INC"
+                            ? "INC"
+                            : ""}
                         </td>
                         <td
                           className={`px-3 py-2 font-medium text-center ${
@@ -98,8 +215,16 @@ const StudentDetails = () => {
                               : "text-red-600"
                           }`}
                         >
-                          {subject.grade
-                            ? subject.grade > 3.0
+                          {subject.grade === "INC"
+                            ? "INCOMPLETE"
+                            : subject.grade === "" ||
+                              subject.grade === undefined
+                            ? "—"
+                            : !isNaN(parseFloat(subject.grade)) &&
+                              isFinite(subject.grade) &&
+                              parseFloat(subject.grade) >= 1.0 &&
+                              parseFloat(subject.grade) <= 5.0
+                            ? parseFloat(subject.grade) > 3.0
                               ? "Failed"
                               : "Passed"
                             : ""}

@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getUserData } from "../../services/authSlice";
 import userIcon from "../../assets/images/user (1).png";
@@ -17,6 +17,7 @@ import {
 import { getUserRole } from "../../utils/userRoles";
 import io from "socket.io-client";
 const socket = io.connect(`${api.defaults.baseURL}`);
+import { RiCalendarScheduleLine } from "react-icons/ri";
 
 const NavDashboard = ({ handleBurger }) => {
   const dispatch = useDispatch();
@@ -153,6 +154,13 @@ const NavDashboard = ({ handleBurger }) => {
           )} */}
 
           <div className="flex items-center gap-3">
+            <Link
+              to={"/deadline"}
+              className="cursor-pointer px-2 hover:bg-gray-100 flex gap-3 text-gray-700 items-center justify-center"
+            >
+              <RiCalendarScheduleLine className="w-6 h-10" />
+              <span>Deadline Submission</span>
+            </Link>
             <div className="flex-col flex text-gray-900">
               <span className="font-bold">{`${userData?.firstName} ${userData?.middleInitial}. ${userData?.lastName}`}</span>
               <span className="text-[12px]">{getUserRole(userData?.role)}</span>

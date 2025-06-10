@@ -12,9 +12,11 @@ import {
   fetchSchoolYears,
 } from "../../../services/schoolYearSlice";
 import ClassTable from "../../../components/table/ClassTable";
+import { getAllCourses, fetchCourses } from "../../../services/coursesSlice";
 
 const StudentClass = () => {
   const dispatch = useDispatch();
+  const allCourse = useSelector(getAllCourses);
   const [searchTerm, setSearchTerm] = useState("");
   const classes = useSelector(getFilteredClasses);
   const schoolYearList = useSelector(getAllSchoolYears);
@@ -22,24 +24,29 @@ const StudentClass = () => {
   const [showModal, setShowModal] = useState(false);
   const [semester, setSemester] = useState("all");
   const [schoolYear, setSchoolYear] = useState("all");
+  const [course, setCourse] = useState("all");
+  const [yearLevel, setYearLevel] = useState("all");
 
   const dataPerPage = 10;
 
   useEffect(() => {
     dispatch(fetchSchoolYears());
+    dispatch(fetchCourses());
   }, [dispatch]);
 
   useEffect(() => {
-    if (semester || schoolYear) {
+    if (semester || schoolYear || course || yearLevel) {
       dispatch(
         filterClasses({
           name: searchTerm,
           semester: semester,
           schoolYear: schoolYear,
+          course: course,
+          yearLevel: yearLevel,
         })
       );
     }
-  }, [dispatch, semester, schoolYear, searchTerm]);
+  }, [dispatch, semester, schoolYear, searchTerm, course, yearLevel]);
 
   // Paganation
   const indexOfLastDocument = currentPage * dataPerPage;
@@ -78,7 +85,7 @@ const StudentClass = () => {
           </div>
 
           <div className="flex justify-end  w-full  gap-3">
-            <div className="flex gap-3 items-center justify-end">
+            <div className="flex gap-3  items-center flex-wrap justify-end">
               <h1 className="text-center text-gray-700">Filter by:</h1>
               <div className="">
                 <div className="relative w-full ">
@@ -101,11 +108,44 @@ const StudentClass = () => {
                     className="border border-blue-500 focus:border-blue rounded-xl w-fit bg-gray-100 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   >
                     <option value="all">School Year</option>
-                    {schoolYearList.map(({ id, schoolYear }) => (
+                    {schoolYearList?.map(({ id, schoolYear }) => (
                       <option key={id} value={schoolYear}>
                         {schoolYear}
                       </option>
                     ))}
+                  </select>
+                </div>
+              </div>
+              <div className="">
+                <div className="relative w-full ">
+                  <select
+                    value={course}
+                    onChange={(e) => setCourse(e.target.value)}
+                    className="border border-blue-500 focus:border-blue rounded-xl w-fit bg-gray-100 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  >
+                    <option value="all">Course</option>
+                    {allCourse.map(({ courseCode, id }) => (
+                      <option key={id} value={courseCode}>
+                        {courseCode}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="">
+                <div className="relative w-full ">
+                  <select
+                    value={yearLevel}
+                    onChange={(e) => setYearLevel(e.target.value)}
+                    className="border border-blue-500 focus:border-blue rounded-xl w-fit bg-gray-100 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  >
+                    <option value="all">Year level</option>
+                    <option value="Grade-11">Grade 11</option>
+                    <option value="Grade-12">Grade 12</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
                   </select>
                 </div>
               </div>

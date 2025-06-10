@@ -29,6 +29,7 @@ const AddClassForm = ({ showModal, setShowModal }) => {
   const schoolYears = useSelector(getAllSchoolYears);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [yearLevel, setYearLevel] = useState("");
+  const [section, setSection] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState({
     schoolYear: "",
@@ -109,6 +110,12 @@ const AddClassForm = ({ showModal, setShowModal }) => {
       );
     }
 
+    if (section) {
+      filtered = filtered.filter(
+        (student) => student.student.section === section
+      );
+    }
+
     // Filter by search term (first name or last name)
     if (searchTerm) {
       filtered = filtered.filter(
@@ -119,7 +126,7 @@ const AddClassForm = ({ showModal, setShowModal }) => {
     }
 
     setFilterStudents(filtered);
-  }, [selectedCourse, students, yearLevel, searchTerm]);
+  }, [selectedCourse, students, yearLevel, searchTerm, section]);
 
   return (
     <>
@@ -332,6 +339,18 @@ const AddClassForm = ({ showModal, setShowModal }) => {
                     <option value="2nd Year">2nd Year</option>
                     <option value="3rd Year">3rd Year</option>
                     <option value="4th Year">4th Year</option>
+                  </select>
+                  <select
+                    value={section}
+                    required
+                    onChange={(e) => setSection(e.target.value)}
+                    className="border  border-gray-300 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  >
+                    <option value="">Section</option>
+                    <option value="Section A">Section A</option>
+                    <option value="Section B">Section B</option>
+                    <option value="Section C">Section C</option>
+                    <option value="Section D">Section D</option>
                   </select>
                 </div>
               </div>

@@ -1,153 +1,167 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import api from "../../api/axios";
 import LoginLoading from "../../components/loader/loginloader/LoginLoading";
 import { useToast } from "../../hooks/useToast";
 import { IoMdArrowRoundBack } from "react-icons/io";
-import ForgotPasswordOTP from "../Verification/ForgotPasswordOTP";
 
-const ForgotPassword = ({ closeModal }) => {
+const ForgotPassword = ({ handleForgotPassword }) => {
   const toast = useToast();
-  const [email, setEmail] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
   const [isLoading, setLoading] = useState(false);
-  const [emailError, setEmailError] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showOTP, setShowOTP] = useState(false);
 
-  const handleLogin = async (e) => {
+  const handleResetPassword = async (data) => {
     setLoading(true);
-    setEmailError("");
     setErrorMessage("");
-    e.preventDefault();
-    try {
-      const data = {
-        email: email,
-      };
 
-      const response = await api.post("/auth/forgot-password", data, {
-        headers: { "Content-Type": "application/json" },
-      });
+    try {
+      const response = await api.put(
+        `/auth/forgot-password/${data.email}`,
+        data,
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
       if (response.data.status === "success") {
-        setTimeout(() => {
-          toast.success(response.data.message);
-        }, 0);
+        toast.success(response.data.message);
 
-        setLoading(false);
-        setShowOTP(true);
+        setTimeout(() => {
+          handleForgotPassword();
+        }, 1000);
       }
     } catch (error) {
+      toast.error(error.response.data.message);
+      setErrorMessage(error.response?.data?.message || "Something went wrong");
+    } finally {
       setLoading(false);
-      if (error.response.data.errors) {
-        error.response.data.errors.forEach((error) => {
-          if (error.path === "email") {
-            setEmailError(error.msg);
-          }
-        });
-      }
-      setErrorMessage(error.response.data.message);
-      console.log(error);
     }
   };
 
-  const closeOTP = () => {
-    setShowOTP(false);
-  };
   return (
     <>
-      {showOTP ? (
-        <ForgotPasswordOTP
-          showOTP={showOTP}
-          closeOTP={closeOTP}
-          closeModal={closeModal}
-          email={email}
-        />
-      ) : (
-        <div
-          id="default-modal"
-          tabIndex="-1"
-          // aria-hidden={!modal}
-          className="fixed inset-0 z-[40] px-5 flex items-center justify-center w-full h-full bg-gray-800 bg-opacity-40 font-normal"
-        >
-          {" "}
-          {isLoading && <LoginLoading />}
-          <div className="relative w-full max-w-lg  max-h-full">
-            <div className="relative text-gray-800 bg-white rounded-xl shadow-lg ">
-              <div className="p-6 py-8 space-y-4 text-sm text-[#221f1f]">
-                <div className="flex gap-5 rounded-t">
-                  <button
-                    onClick={() => closeModal(false)}
-                    className="text-2xl font-bold"
-                  >
-                    <IoMdArrowRoundBack />
-                  </button>
-                  <h1 className="md:text-2xl font-bold text-lg ">
-                    Forgot Password?
-                  </h1>
-                </div>
-                <h3 className="text-sm md:text-[16px] text-gray-700">
-                  Please provide your email for password reset verification.
-                </h3>
-                <form onSubmit={handleLogin}>
-                  <label
-                    htmlFor="email"
-                    className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                  >
-                    Email
-                  </label>
-                  <div className="flex relative">
-                    <span className="absolute h-full inline-flex   items-center px-3 text-sm text-gray-900 ">
-                      <svg
-                        className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                        // aria-hidden="true"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path d="M10 0a10 10 0 1 0 10 10A10.011 10.011 0 0 0 10 0Zm0 5a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 13a8.949 8.949 0 0 1-4.951-1.488A3.987 3.987 0 0 1 9 13h2a3.987 3.987 0 0 1 3.951 3.512A8.949 8.949 0 0 1 10 18Z" />
-                      </svg>
-                    </span>
-                    <input
-                      type="text"
-                      id="email"
-                      className={`rounded-lg pl-12 bg-gray-50 border  ${
-                        emailError || errorMessage
-                          ? "border-red-500 "
-                          : "border-gray-300 "
-                      } text-gray-900 focus:ring-blue-500 focus:border-blue-100 block flex-1 min-w-0 w-full text-sm p-2.5 `}
-                      placeholder="Enter your email"
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                  {emailError && (
-                    <span className="text-red-500 text-sm">{emailError}</span>
-                  )}
-                  {errorMessage && (
-                    <span className="text-red-500 text-sm">{errorMessage}</span>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isLoading ? true : false}
-                    className={` ${
-                      isLoading ? "cursor-not-allowed" : "cursor-pointer"
-                    } w-full  mt-6 p-2 bg-main hover:bg-main_hover text-[#fff] md:text-lg text-sm rounded-lg`}
-                  >
-                    Continue
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
+      {isLoading && <LoginLoading />}
+      <div className="absolute bg-white text-white bg-opacity-10 backdrop-blur-md shadow-2xl rounded-xl p-8 w-11/12 max-w-md z-20">
+        <div className="flex gap-5 rounded-t">
+          <button onClick={handleForgotPassword} className="text-2xl font-bold">
+            <IoMdArrowRoundBack />
+          </button>
+          <h1 className="md:text-2xl font-bold text-white text-lg">
+            Forgot Password?
+          </h1>
         </div>
-      )}
+        <form
+          onSubmit={handleSubmit(handleResetPassword)}
+          className="space-y-4 mt-4"
+        >
+          {/* Email Field */}
+          <div>
+            <label htmlFor="email" className="block text-white text-lg mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              {...register("email", {
+                required: "Email is required",
+                pattern: {
+                  value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/,
+                  message: "Invalid email format",
+                },
+              })}
+              className={`w-full p-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-gray-300 border ${
+                errors.email ? "border-red-600" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-blue-400`}
+              placeholder="Enter your email"
+            />
+            {errors.email && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          {/* New Password Field */}
+          <div>
+            <label
+              htmlFor="newPassword"
+              className="block text-white text-lg mb-2"
+            >
+              New Password
+            </label>
+            <input
+              type="password"
+              id="newPassword"
+              {...register("newPassword", {
+                required: "New password is required",
+                minLength: {
+                  value: 6,
+                  message: "Password must be at least 6 characters",
+                },
+              })}
+              className={`w-full p-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-gray-300 border ${
+                errors.newPassword ? "border-red-600" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-blue-400`}
+              placeholder="New password"
+            />
+            {errors.newPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.newPassword.message}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-white text-lg mb-2"
+            >
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              {...register("confirmPassword", {
+                required: "Please confirm your password",
+              })}
+              className={`w-full p-3 rounded-lg bg-white bg-opacity-20 text-white placeholder-gray-300 border ${
+                errors.confirmPassword ? "border-red-600" : "border-gray-300"
+              } focus:outline-none focus:ring-2 focus:ring-blue-400`}
+              placeholder="Confirm password"
+            />
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          {errorMessage && (
+            <p className="text-red-500 text-sm mt-1">{errorMessage}</p>
+          )}
+
+          <button
+            disabled={isLoading}
+            type="submit"
+            className="w-full py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold hover:opacity-90 focus:outline-none focus:ring-4 focus:ring-blue-400 transition duration-300"
+          >
+            {isLoading ? "Loading..." : "Change Password"}
+          </button>
+        </form>
+      </div>
     </>
   );
 };
 
 ForgotPassword.propTypes = {
-  modal: PropTypes.bool,
-  closeModal: PropTypes.func,
+  handleForgotPassword: PropTypes.func,
 };
 
 export default ForgotPassword;

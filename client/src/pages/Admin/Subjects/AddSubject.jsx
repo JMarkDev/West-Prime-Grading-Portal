@@ -101,6 +101,7 @@ const AddSubject = ({ showModal, setShowModal }) => {
               {...register("description")}
               type="text"
               id="description"
+              required
               className={`w-full p-2 border rounded-lg text-sm ${
                 descriptionError ? "border-red-500" : "border-gray-300"
               }`}

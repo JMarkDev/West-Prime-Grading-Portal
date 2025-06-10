@@ -27,6 +27,7 @@ import ClassDetails from "./pages/Admin/StudentClass/ViewClass";
 import ViewGrade from "./pages/Student/ViewGrade";
 import InstructorSubjects from "./pages/Instructor/InstructorSubjects";
 import InputGrades from "./pages/Instructor/InputGrades";
+import DeadlineSubmission from "./pages/Admin/DeadlineSubmission/DeadlineSubmission";
 
 function App() {
   const adminLinks = [
@@ -89,6 +90,11 @@ function App() {
       title: "Admin",
       path: "/admin",
       component: <Admin />,
+    },
+    {
+      title: "Submission",
+      path: "/deadline",
+      component: <DeadlineSubmission />,
     },
   ];
 

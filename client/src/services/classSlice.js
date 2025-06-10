@@ -11,7 +11,7 @@ export const fetchClasses = createAsyncThunk(
 
 export const filterClasses = createAsyncThunk(
   "classes/filterClasses",
-  async ({ name, semester, schoolYear }) => {
+  async ({ name, semester, schoolYear, course, yearLevel }) => {
     const queryParams = new URLSearchParams();
 
     if (name) {
@@ -23,6 +23,14 @@ export const filterClasses = createAsyncThunk(
     }
     if (schoolYear) {
       queryParams.append("schoolYear", schoolYear);
+    }
+
+    if (course) {
+      queryParams.append("course", course);
+    }
+
+    if (yearLevel) {
+      queryParams.append("yearLevel", yearLevel);
     }
 
     const response = await axios.get(`/classes/all-subjects?${queryParams}`);
@@ -100,8 +108,10 @@ export const fetchStudentSubjectsBySemSY = createAsyncThunk(
   "students/fetchStudentSubjectsBySemSY",
 
   async (studentId) => {
-    const response = await axios.get(`/classes/studentId/${studentId}`);
-    return response.data;
+    if (studentId) {
+      const response = await axios.get(`/classes/studentId/${studentId}`);
+      return response.data;
+    }
   }
 );
 
@@ -143,6 +153,16 @@ const classSlice = createSlice({
   reducers: {
     clearFilteredClasses(state) {
       state.filteredClasses = [];
+    },
+    clearStudentSubjects(state) {
+      state.studentAllSubjects = [];
+    },
+    reset: (state) => {
+      state.allClasses = [];
+      state.filteredClasses = [];
+      state.classByInstructor = null;
+      state.studentAllSubjects = [];
+      state.instructorSubjects = [];
     },
   },
   extraReducers(builder) {
@@ -249,3 +269,7 @@ export const getStudentAllSubjects = (state) =>
 
 export const allInstructorSubjects = (state) =>
   state.classes.instructorSubjects;
+
+// Exporting the action creators
+export const { clearFilteredClasses, clearStudentSubjects, reset } =
+  classSlice.actions;

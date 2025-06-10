@@ -12,6 +12,10 @@ import {
   removeFromClass,
   addStudentToClass,
 } from "../../../services/classSlice";
+import { fetchUsers, getAllUsers } from "../../../services/usersSlice";
+import rolesList from "../../../constants/rolesList";
+import { getAllSubjects, fetchSubjects } from "../../../services/subjectSlice";
+import { filterClasses } from "../../../services/classSlice";
 
 const AddClassForm = ({
   showModal,
@@ -23,13 +27,22 @@ const AddClassForm = ({
 }) => {
   const toast = useToast();
   const dispatch = useDispatch();
+  const instructors = useSelector(getAllUsers);
+  const subjects = useSelector(getAllSubjects);
   const { handleSubmit } = useForm();
   const selectedSubject = useSelector(getClassByInstructor);
   const students = useSelector(getAllStudents);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
+  const [instructor, setIntructor] = useState("");
+  const [selectedSubjectCode, setSubjectCode] = useState("");
+  const [description, setDescription] = useState("");
+  const [subjectId, setSubjectId] = useState("");
+  const [selectedInstructorId, setInstructorId] = useState("");
 
   useEffect(() => {
+    dispatch(fetchUsers(rolesList.instructor));
+    dispatch(fetchSubjects());
     if (searchTerm) {
       dispatch(filterStudents({ name: searchTerm, course: "", yearLevel: "" }));
     }
@@ -42,6 +55,17 @@ const AddClassForm = ({
       })
     );
   }, [dispatch, instructorId, semester, schoolYear, subjectCode, searchTerm]);
+
+  useEffect(() => {
+    if (selectedSubject?.instructor) {
+      setIntructor(selectedSubject?.instructor);
+      setSubjectId(selectedSubject?.subjectId);
+      setSubjectCode(selectedSubject.subjectCode);
+      setDescription(selectedSubject.description);
+      setSubjectId(selectedSubject.subjectId);
+      setInstructorId(selectedSubject?.instructorId);
+    }
+  }, [selectedSubject, subjects]);
 
   // const onSubmit = async () => {
   //   // setLoading(true);
@@ -139,6 +163,47 @@ const AddClassForm = ({
     }
   };
 
+  const updateClass = async (id) => {
+    setLoading(true);
+
+    const data = {
+      instructor: instructor,
+      instructorId: selectedInstructorId,
+      subjectCode: selectedSubjectCode,
+      description: description,
+      subjectId: subjectId,
+      schoolYear: selectedSubject?.schoolYear,
+      yearLevel: selectedSubject?.yearLevel,
+      semester: selectedSubject?.semester,
+    };
+    // subjectId,
+    // yearLevel,
+    // semester,
+    // schoolYear,
+    // instructor,
+    // instructorId,
+    // subjectCode,
+    // description,
+    setShowModal(false), console.log(data);
+    try {
+      const response = await api.put(`/classes/update/${id}`, data);
+      if (response.data.status === "success") {
+        toast.success(response.data.message);
+        dispatch(
+          filterClasses({
+            name: "",
+            semester: "all",
+            schoolYear: "all",
+            course: "all",
+            yearLevel: "all",
+          })
+        );
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <div
@@ -153,21 +218,57 @@ const AddClassForm = ({
           <form className="space-y-4">
             <div>
               <label className="block text-sm font-medium">Instructor</label>
-              <div className="border rounded-lg bg-gray-50 p-3 shadow-sm">
-                <p className="text-gray-900 font-semibold">
-                  {selectedSubject?.instructor}
-                </p>
-              </div>
+              <select
+                value={selectedInstructorId || ""} // <-- this is important
+                onChange={(e) => {
+                  const selectedInstructor = instructors.find(
+                    (inst) => inst.id.toString() === e.target.value
+                  );
+                  if (selectedInstructor) {
+                    setIntructor(
+                      `${selectedInstructor.firstName} ${selectedInstructor.middleInitial}. ${selectedInstructor.lastName}`
+                    );
+                    setInstructorId(selectedInstructor.id);
+                  }
+                }}
+                className="border border-gray-300 rounded-lg bg-gray-50 p-3 w-full shadow-sm"
+              >
+                <option value="">Select Instructor</option>{" "}
+                {/* optional default */}
+                {instructors?.map(
+                  ({ id, firstName, lastName, middleInitial }) => (
+                    <option key={id} value={id}>
+                      {`${firstName} ${middleInitial}. ${lastName}`}
+                    </option>
+                  )
+                )}
+              </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium">Subjects</label>
-              <div className="border rounded-lg bg-gray-50 p-3 shadow-sm">
-                <p className="text-gray-900 font-semibold">
-                  {selectedSubject?.subjectCode} -{" "}
-                  {selectedSubject?.description}
-                </p>
-              </div>
+              <select
+                value={subjectId || ""} // <-- controlled value here too
+                onChange={(e) => {
+                  const selectedSubject = subjects.find(
+                    (sub) => sub.id.toString() === e.target.value
+                  );
+                  if (selectedSubject) {
+                    setSubjectCode(selectedSubject.subjectCode);
+                    setDescription(selectedSubject.description);
+                    setSubjectId(selectedSubject.id);
+                  }
+                }}
+                className="border w-full border-gray-300 rounded-lg bg-gray-50 p-3 shadow-sm"
+              >
+                <option value="">Select Subject</option>{" "}
+                {/* optional default */}
+                {subjects?.map(({ id, subjectCode, description }) => (
+                  <option key={id} value={id}>
+                    {subjectCode} - {description}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="space-y-4">
@@ -269,7 +370,7 @@ const AddClassForm = ({
             </div>
 
             <div className="flex justify-end space-x-2">
-              {/* <button
+              <button
                 type="button"
                 disabled={loading}
                 className={`${
@@ -278,16 +379,16 @@ const AddClassForm = ({
                 onClick={() => setShowModal(false)}
               >
                 Cancel
-              </button> */}
+              </button>
               <button
                 type="button"
-                onClick={() => setShowModal(false)}
+                onClick={() => updateClass(selectedSubject?.id)}
                 disabled={loading}
                 className={`${
                   loading ? "cursor-not-allowed" : "cursor-pointer"
                 } px-4 py-2 bg-blue-600 text-white rounded`}
               >
-                Done
+                Update
               </button>
             </div>
           </form>

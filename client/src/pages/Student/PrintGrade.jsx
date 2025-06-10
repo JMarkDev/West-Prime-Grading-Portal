@@ -43,7 +43,7 @@ const DownloadGrades = ({ contentRef }) => {
           alt="User Profile"
           className="w-24 h-24 mt-6 border shadow-sm"
         />
-        <div className="ml-6 text-sm">
+        <div className="ml-6 mt-4 text-sm">
           <h2 className="text-lg font-semibold">
             {studentAllSubjects?.studentName}.
           </h2>
@@ -65,7 +65,7 @@ const DownloadGrades = ({ contentRef }) => {
               School Year {record.schoolYear} ({record.semester})
             </h2>
             <div className="overflow-x-auto">
-              <table className="w-full table-fixed border text-gray-800">
+              <table className="w-full table-fixed border text-gray-800 text-xs print:text-[10px]">
                 <thead className="bg-gray-200 border">
                   <tr>
                     <th className="pb-4 border w-2/6 text-xs text-nowrap text-center">
@@ -83,14 +83,14 @@ const DownloadGrades = ({ contentRef }) => {
                 <tbody className=" text-sm">
                   {record.subjects.map((subject, idx) => (
                     <tr key={idx} className="border-b text-xs">
-                      <td className="pb-4 border  break-words text-center">
+                      <td className=" border  break-words text-center">
                         {subject.subjectCode}
                       </td>
-                      <td className="pb-4 border break-words text-center">
+                      <td className=" border break-words text-center">
                         {subject.description}
                       </td>
                       <td
-                        className={`pb-4 border text-center font-bold ${
+                        className={` border text-center font-bold ${
                           subject.grade > 3 ? "text-red-600" : "text-gray-600"
                         }`}
                       >
@@ -101,7 +101,7 @@ const DownloadGrades = ({ contentRef }) => {
                           : ""}
                       </td>
                       <td
-                        className={`pb-4 border text-center ${
+                        className={` border text-center ${
                           subject.grade < 3.0
                             ? "text-green-600"
                             : "text-red-600"

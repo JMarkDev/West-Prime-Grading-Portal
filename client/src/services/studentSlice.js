@@ -31,7 +31,7 @@ export const fetchStudentById = createAsyncThunk(
 
 export const filterStudents = createAsyncThunk(
   "students/filterStudents",
-  async ({ name, course, yearLevel, schoolYear }) => {
+  async ({ name, course, yearLevel, schoolYear, status, section }) => {
     try {
       const queryParams = new URLSearchParams();
 
@@ -49,6 +49,14 @@ export const filterStudents = createAsyncThunk(
         queryParams.append("schoolYear", schoolYear);
       }
 
+      if (status) {
+        queryParams.append("status", status);
+      }
+
+      if (section) {
+        queryParams.append("section", section);
+      }
+
       const response = await axios.get(`/students/filter?${queryParams}`);
       return response.data;
     } catch (error) {
@@ -57,10 +65,47 @@ export const filterStudents = createAsyncThunk(
   }
 );
 
+export const filterAllStudentsAcademics = createAsyncThunk(
+  "students/filterAllStudents",
+  async ({ name, course, yearLevel, schoolYear, status, section }) => {
+    try {
+      const queryParams = new URLSearchParams();
+
+      if (name) {
+        queryParams.append("name", name);
+      }
+      if (course) {
+        queryParams.append("course", course);
+      }
+      if (yearLevel) {
+        queryParams.append("yearLevel", yearLevel);
+      }
+
+      if (schoolYear) {
+        queryParams.append("schoolYear", schoolYear);
+      }
+
+      if (status) {
+        queryParams.append("status", status);
+      }
+
+      if (section) {
+        queryParams.append("section", section);
+      }
+
+      const response = await axios.get(`/classes/filter?${queryParams}`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching all student academics:", error);
+    }
+  }
+);
+
 const studentSlice = createSlice({
   name: "students",
   initialState: {
     allStudents: [],
+    allStudentWithAcads: [],
     studentById: null,
     status: {
       students: "idle",
@@ -116,10 +161,22 @@ const studentSlice = createSlice({
       .addCase(filterStudents.rejected, (state, action) => {
         state.status.students = "failed";
         state.error = action.error.message;
+      })
+      .addCase(filterAllStudentsAcademics.pending, (state) => {
+        state.status.students = "loading";
+      })
+      .addCase(filterAllStudentsAcademics.fulfilled, (state, action) => {
+        state.status.students = "succeeded";
+        state.allStudentWithAcads = action.payload;
+      })
+      .addCase(filterAllStudentsAcademics.rejected, (state, action) => {
+        state.status.students = "failed";
+        state.error = action.error.message;
       });
   },
 });
 
 export default studentSlice.reducer;
 export const getAllStudents = (state) => state.students.allStudents;
+export const getAllStudentAcads = (state) => state.students.allStudentWithAcads;
 export const getStudentById = (state) => state.students.studentById;

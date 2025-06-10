@@ -3,7 +3,8 @@ import Cookie from "js-cookie";
 
 // Create an instance of axios
 const api = axios.create({
-  baseURL: "http://localhost:3001",
+  // baseURL: "http://localhost:3001",
+  baseURL: "https://west-prime-grading-portal-server.tarakabataan.com",
   withCredentials: true,
 });
 

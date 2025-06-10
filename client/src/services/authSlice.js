@@ -8,10 +8,11 @@ export const fetchUser = createAsyncThunk("/auth/fetchUser", async () => {
     return null;
   }
   const response = await axios.get("/protected", { withCredentials: true });
-  const email = response.data.user.email;
 
-  if (email) {
-    const userResponse = await axios.get(`/users/get-user?email=${email}`);
+  const id = response.data.user.id;
+
+  if (id) {
+    const userResponse = await axios.get(`/users/get-user-by-id/${id}`);
     return userResponse.data;
   }
 
