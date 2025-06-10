@@ -27,6 +27,8 @@ const createClass = async (req, res) => {
       where: { instructorId, schoolYear, semester },
     });
 
+    console.log(existingClass);
+
     if (existingClass) {
       return res.status(400).json({
         message: `Class for ${instructor} already exists for SY ${schoolYear} - ${semester}.`,
@@ -172,7 +174,7 @@ const getStudentSubjectsBySemSY = async (req, res) => {
         {
           model: studentModel,
           as: "student",
-          attributes: ["course", "yearLevel"],
+          attributes: ["course", "yearLevel", "studentId", "status", "section"],
         },
       ],
     });
@@ -188,11 +190,14 @@ const getStudentSubjectsBySemSY = async (req, res) => {
 
     if (!subjects.length) {
       return res.status(200).json({
-        studentId: studentData?.studentId || studentId, // Use studentData if available
+        id: studentData?.id, // Use studentData if available
+        studentId: studentData?.student.studentId,
         studentName: `${studentData.firstName} ${studentData.middleInitial}. ${studentData.lastName}`, // Fallback if name is missing
         address: studentData?.address, // Default address
         course: studentData?.student?.course,
         yearLevel: studentData?.student?.yearLevel,
+        status: studentData?.student?.status,
+        section: studentData?.student?.section,
         academicRecords: [], // Return an empty array instead of 404
       });
     }
@@ -220,16 +225,115 @@ const getStudentSubjectsBySemSY = async (req, res) => {
     }, {});
 
     return res.status(200).json({
-      studentId: subjects[0].studentId,
+      id: studentData.id,
+      image: studentData.image,
       studentName: subjects[0].studentName,
+      studentId: studentData.student.studentId,
       address: studentData.address,
       course: studentData.student.course,
       yearLevel: studentData.student.yearLevel,
+      status: studentData.student.status,
+      section: studentData.student.section,
       academicRecords: Object.values(groupedSubjects), // Convert grouped object into an array
     });
   } catch (error) {
     console.error("Error fetching student subjects:", error);
     return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+const filterAllStudentClass = async (req, res) => {
+  const { name, course, yearLevel, schoolYear, status, section } = req.query;
+  console.log(req.query, "query");
+
+  try {
+    // Find all the students base on filter
+    const userWhere = {};
+    if (name) {
+      userWhere[Op.or] = [
+        { firstName: { [Op.like]: `${name}%` } },
+        { lastName: { [Op.like]: `${name}%` } },
+      ];
+    }
+
+    // Build student filter
+    const studentWhere = {};
+    if (course) studentWhere.course = course;
+    if (yearLevel) studentWhere.yearLevel = yearLevel;
+    if (schoolYear) studentWhere.schoolYear = schoolYear;
+    if (status) studentWhere.status = status;
+    if (section) studentWhere.section = section;
+
+    // Fetch students
+    const students = await userModel.findAll({
+      where: userWhere,
+      include: [
+        {
+          model: studentModel,
+          as: "student",
+          required: true,
+          where: studentWhere,
+          attributes: ["course", "yearLevel", "studentId", "status", "section"],
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Map over each student to get their subject records
+    const result = await Promise.all(
+      students.map(async (studentData) => {
+        const grades = await gradeModel.findAll({
+          where: {
+            studentId: studentData.studentId,
+          },
+          order: [
+            ["schoolYear", "DESC"],
+            ["semester", "ASC"],
+            ["createdAt", "ASC"],
+          ],
+        });
+
+        // Group subjects by school year and semester
+        const groupedSubjects = grades?.reduce((acc, subject) => {
+          const key = `${subject.schoolYear} - ${subject.semester}`;
+          if (!acc[key]) {
+            acc[key] = {
+              schoolYear: subject.schoolYear,
+              semester: subject.semester,
+              subjects: [],
+            };
+          }
+          acc[key].subjects.push({
+            id: subject.id,
+            subjectId: subject.subjectId,
+            subjectCode: subject.subjectCode,
+            description: subject.description,
+            instructor: subject.instructor,
+            grade: subject.grade,
+            remarks: subject.remarks,
+          });
+          return acc;
+        }, {});
+
+        return {
+          id: studentData.studentId,
+          studentId: studentData.student.studentId,
+          studentName: `${studentData.firstName} ${studentData.middleInitial}. ${studentData.lastName}`,
+          address: studentData.address,
+          image: studentData.image,
+          course: studentData.student.course,
+          yearLevel: studentData.student.yearLevel,
+          status: studentData.student.status,
+          section: studentData.student.section,
+          academicRecords: Object.values(groupedSubjects),
+        };
+      })
+    );
+
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -295,7 +399,7 @@ const getAllSubjectByInstructor = async (req, res) => {
 };
 
 const getAllSubjectWithInstructor = async (req, res) => {
-  const { name, semester, schoolYear } = req.query;
+  const { name, semester, schoolYear, course, yearLevel } = req.query;
 
   try {
     const whereCondition = {}; // Default: No filter, fetch all data
@@ -306,6 +410,8 @@ const getAllSubjectWithInstructor = async (req, res) => {
     if (semester && semester !== "all") whereCondition.semester = semester;
     if (schoolYear && schoolYear !== "all")
       whereCondition.schoolYear = schoolYear;
+    if (course && course !== "all") whereCondition.course = course;
+    if (yearLevel && yearLevel !== "all") whereCondition.yearLevel = yearLevel;
 
     // Fetch all subjects with instructors
     const subjects = await gradeModel.findAll({
@@ -333,6 +439,8 @@ const getAllSubjectWithInstructor = async (req, res) => {
       order: [
         ["schoolYear", "DESC"],
         ["semester", "DESC"],
+        ["course", "DESC"],
+        ["yearLevel", "DESC"],
       ],
     });
 
@@ -377,6 +485,7 @@ const getClassByInstructorSemSySubjectCode = async (req, res) => {
     const subject = await gradeModel.findOne({
       where: { instructorId, semester, schoolYear, subjectCode },
       attributes: [
+        "id",
         "subjectId",
         "subjectCode",
         "description",
@@ -401,6 +510,7 @@ const getClassByInstructorSemSySubjectCode = async (req, res) => {
     });
 
     const subjectWithStudents = {
+      id: subject.id,
       subjectId: subject.subjectId,
       subjectCode: subject.subjectCode,
       description: subject.description,
@@ -454,6 +564,8 @@ const addStudentToClass = async (req, res) => {
     yearLevel,
   } = req.body;
 
+  console.log(req.body);
+
   try {
     // Check if student is already enrolled in the class
     const existingRecord = await gradeModel.findOne({
@@ -498,7 +610,24 @@ const inputGrades = async (req, res) => {
   try {
     await gradeModel.sequelize.transaction(async (t) => {
       for (const { id, grade } of grades) {
-        const remarks = Number(grade) > 3.0 ? "Failed" : "Passed";
+        let remarks;
+
+        if (grade === "INC") {
+          remarks = "INCOMPLETE";
+        } else if (!isNaN(grade)) {
+          const numericGrade = parseFloat(grade).toFixed(2);
+          remarks = numericGrade > 3.0 ? "Failed" : "Passed";
+
+          // Save as string like '1.00'
+          await gradeModel.update(
+            { grade: numericGrade.toString(), remarks },
+            { where: { id }, transaction: t }
+          );
+          continue;
+        } else {
+          remarks = ""; // invalid input fallback
+        }
+
         await gradeModel.update(
           { grade, remarks },
           { where: { id }, transaction: t }
@@ -515,11 +644,52 @@ const inputGrades = async (req, res) => {
   }
 };
 
+const updateClass = async (req, res) => {
+  const { id } = req.params;
+  const {
+    subjectId,
+    yearLevel,
+    semester,
+    schoolYear,
+    instructor,
+    instructorId,
+    subjectCode,
+    description,
+  } = req.body;
+
+  try {
+    const updatedClass = await gradeModel.update(
+      {
+        instructor: instructor,
+        instructorId: instructorId,
+        subjectCode: subjectCode,
+        description: description,
+        subjectId: subjectId,
+        yearLevel: yearLevel,
+        schoolYear: schoolYear,
+        semester: semester,
+      },
+      {
+        where: { id },
+      }
+    );
+
+    return res.status(200).json({
+      message: "Class updated successfully",
+      status: "success",
+      updatedClass,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createClass,
   getClasses,
   getClass,
-  // updateClass,
+  updateClass,
   deleteClass,
   getClassByInstructorSemSY,
   getStudentSubjectsBySemSY,
@@ -529,4 +699,5 @@ module.exports = {
   addStudentToClass,
   getAllSubjectByInstructor,
   inputGrades,
+  filterAllStudentClass,
 };

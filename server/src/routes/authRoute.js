@@ -12,10 +12,11 @@ const {
   validateForgotPassword,
 } = require("../middlewares/formValidation");
 const forgotPasswordController = require("../controllers/forgotPasswordController");
+const userController = require("../controllers/userController");
 
 router.post(
   "/register",
-  registerValidationRules(),
+  registerValidationRules(false),
   validateForm,
   authController.handleRegister
 );
@@ -41,6 +42,13 @@ router.put(
   validateForgotPassword(),
   validateForm,
   forgotPasswordController.resetPassword
+);
+
+router.put(
+  "/forgot-password/:email",
+  // validateForgotPassword(),
+  // validateForm,
+  userController.forgotPassword
 );
 
 module.exports = router;

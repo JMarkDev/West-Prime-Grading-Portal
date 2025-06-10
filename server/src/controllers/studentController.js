@@ -5,6 +5,7 @@ const { Op } = require("sequelize");
 const sequelize = require("../config/database");
 const schoolYearModel = require("../models/schoolYearModel");
 const courseModel = require("../models/courseModel");
+const gradeModel = require("../models/gradeModel");
 
 const getStudents = async (req, res) => {
   try {
@@ -39,7 +40,8 @@ const deleteStudent = async (req, res) => {
 };
 
 const filterStudents = async (req, res) => {
-  const { name, course, yearLevel, schoolYear } = req.query;
+  const { name, course, yearLevel, schoolYear, status, section } = req.query;
+  console.log("test", req.query);
 
   // Conditions for userModel (firstName, lastName)
   const userWhereCondition = {};
@@ -61,6 +63,13 @@ const filterStudents = async (req, res) => {
 
   if (schoolYear) {
     studentWhereCondition.schoolYear = schoolYear;
+  }
+
+  if (status) {
+    studentWhereCondition.status = status;
+  }
+  if (section) {
+    studentWhereCondition.section = section;
   }
 
   try {

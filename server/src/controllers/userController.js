@@ -10,27 +10,7 @@ const studentModel = require("../models/studentModel");
 const rolesList = require("../constants/rolesList");
 const sequelize = require("../config/database");
 const date = require("date-and-time");
-
-const getUserByEmail = async (req, res) => {
-  const { email } = req.query;
-  try {
-    const user = await userModel.findOne({
-      where: {
-        email: email,
-      },
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        message: "No user found",
-      });
-    }
-
-    return res.status(200).json(user);
-  } catch (error) {
-    return res.status(500).json({ Error: "Get user by email error in server" });
-  }
-};
+const gradeModel = require("../models/gradeModel");
 
 const getUserById = async (req, res) => {
   const { id } = req.params;
@@ -41,12 +21,35 @@ const getUserById = async (req, res) => {
       },
       include: [{ model: studentModel, required: false, as: "student" }],
     });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "No user found",
+      });
+    }
     return res.status(200).json(user);
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: error.message });
   }
 };
+
+// const getAllUserByRole = async (req, res) => {
+//   const { role } = req.query;
+//   try {
+//     const verifiedUser = await userModel.findAll({
+//       where: {
+//         role: role,
+//       },
+//     });
+
+//     console.log(verifiedUser);
+
+//     return res.status(200).json(verifiedUser);
+//   } catch (error) {
+//     return res.status(500).json({ Error: "Get all users error in server" });
+//   }
+// };
 
 const getAllUserByRole = async (req, res) => {
   const { role } = req.query;
@@ -56,11 +59,120 @@ const getAllUserByRole = async (req, res) => {
         role: role,
       },
     });
+    // Add grade submission status for instructors only
+    if (Number(role) === rolesList.instructor) {
+      // Process each instructor to add grade submission status
+      const instructorsWithStatus = await Promise.all(
+        verifiedUser.map(async (instructor) => {
+          const instructorData = instructor.toJSON();
 
+          // Get the latest academic record for this instructor
+          const latestRecord = await getLatestAcademicRecord(instructor.id);
+
+          if (latestRecord) {
+            // Add status information to the instructor
+            instructorData.gradeStatus = {
+              schoolYear: latestRecord.schoolYear,
+              semester: latestRecord.semester,
+              status: determineGradeSubmissionStatus(latestRecord.subjects),
+              totalSubjects: latestRecord.subjects.length,
+              submittedSubjects: latestRecord.subjects.filter(
+                (s) => s.grade !== null
+              ).length,
+            };
+          } else {
+            // No academic records found
+            instructorData.gradeStatus = {
+              status: "pending",
+              totalSubjects: 0,
+              submittedSubjects: 0,
+            };
+          }
+
+          return instructorData;
+        })
+      );
+      console.log(instructorsWithStatus);
+
+      return res.status(200).json(instructorsWithStatus);
+    }
+
+    // For non-instructor roles, return data as is
     return res.status(200).json(verifiedUser);
   } catch (error) {
     return res.status(500).json({ Error: "Get all users error in server" });
   }
+};
+
+// Helper function to get the latest academic record for an instructor
+const getLatestAcademicRecord = async (instructorId) => {
+  try {
+    const subjects = await gradeModel.findAll({
+      where: { instructorId: Number(instructorId) },
+      order: [
+        ["schoolYear", "DESC"],
+        ["semester", "ASC"], // Assuming "1st" comes before "2nd" in alphabetical order
+        ["createdAt", "ASC"],
+      ],
+    });
+
+    if (!subjects.length) {
+      return null;
+    }
+
+    // Group subjects by school year and semester
+    const groupedSubjects = subjects.reduce((acc, subject) => {
+      const key = `${subject.schoolYear} - ${subject.semester}`;
+
+      if (!acc[key]) {
+        acc[key] = {
+          schoolYear: subject.schoolYear,
+          semester: subject.semester,
+          subjects: [],
+        };
+      }
+
+      // Ensure unique subjects
+      const existingSubjectIds = new Set(
+        acc[key].subjects.map((s) => s.subjectId)
+      );
+
+      if (!existingSubjectIds.has(subject.subjectId)) {
+        acc[key].subjects.push({
+          id: subject.id,
+          subjectId: subject.subjectId,
+          subjectCode: subject.subjectCode,
+          description: subject.description,
+          course: subject.course,
+          instructor: subject.instructor,
+          grade: subject.grade,
+          remarks: subject.remarks,
+        });
+      }
+
+      return acc;
+    }, {});
+
+    // Convert to array and get the first one (latest)
+    const academicRecords = Object.values(groupedSubjects);
+    return academicRecords.length > 0 ? academicRecords[0] : null;
+  } catch (error) {
+    console.error("Error getting latest academic record:", error);
+    return null;
+  }
+};
+
+// Helper function to determine grade submission status
+const determineGradeSubmissionStatus = (subjects) => {
+  if (!subjects || !subjects.length) return "pending";
+
+  const totalSubjects = subjects.length;
+  const gradedSubjects = subjects.filter(
+    (subject) => subject.grade !== null
+  ).length;
+
+  if (gradedSubjects === 0) return "pending";
+  return "completed";
 };
 
 const getUserByRole = async (req, res) => {
@@ -139,6 +251,9 @@ const updateUserData = async (req, res) => {
     yearLevel,
     schoolYear,
     password,
+    studentId,
+    status,
+    section,
   } = req.body;
 
   try {
@@ -168,9 +283,12 @@ const updateUserData = async (req, res) => {
     if (user.role === rolesList.student) {
       await studentModel.update(
         {
+          studentId: studentId,
           course: course,
           yearLevel: yearLevel,
           schoolYear: schoolYear,
+          status: status,
+          section: section,
           updatedAt: sequelize.literal(`'${formattedDate}'`),
         },
         {
@@ -189,36 +307,40 @@ const updateUserData = async (req, res) => {
   }
 };
 
-const updatePassword = async (req, res) => {
-  const { id } = req.params;
-  const { password, new_password, confirm_password } = req.body;
+const forgotPassword = async (req, res) => {
+  const { email } = req.params;
+  const { newPassword, confirmPassword } = req.body;
 
   try {
-    const user = await userModel.findByPk(id);
+    const user = await userModel.findOne({
+      where: {
+        email: email,
+      },
+    });
 
-    if (!password) {
+    if (!user) {
+      return res.status(400).json({
+        message: "No user found",
+      });
+    }
+
+    if (!newPassword) {
       return res.status(404).json({ message: "Password is required" });
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (new_password.length < 8) {
+    if (newPassword.length < 8) {
       return res
         .status(400)
         .json({ message: "New password must be at least 8 characters" });
     }
 
-    if (!isPasswordMatch) {
-      return res.status(400).json({ message: "Incorrect password" });
-    }
-
-    if (new_password !== confirm_password) {
+    if (newPassword !== confirmPassword) {
       return res
         .status(400)
         .json({ message: "New password and Confirm password do not match" });
     }
 
-    const hashPassword = await bcrypt.hash(new_password, saltsRounds);
+    const hashPassword = await bcrypt.hash(newPassword, saltsRounds);
 
     await userModel.update(
       {
@@ -226,7 +348,7 @@ const updatePassword = async (req, res) => {
         updatedAt: createdAt,
       },
       {
-        where: { id },
+        where: { email },
       }
     );
 
@@ -242,8 +364,17 @@ const updatePassword = async (req, res) => {
 
 const updateProfile = async (req, res) => {
   const { id } = req.params;
-  const { image, firstName, lastName, middleInitial, contactNumber, address } =
-    req.body;
+  const {
+    image,
+    firstName,
+    lastName,
+    middleInitial,
+    contactNumber,
+    email,
+    address,
+  } = req.body;
+
+  console.log(req.body);
 
   try {
     const user = await userModel.findOne({ where: { id } });
@@ -269,6 +400,7 @@ const updateProfile = async (req, res) => {
         lastName: lastName,
         middleInitial: middleInitial,
         contactNumber: contactNumber,
+        email: email,
         address: address,
         updatedAt: createdAt,
       },
@@ -289,7 +421,6 @@ const updateProfile = async (req, res) => {
 
 const updateEmail = async (req, res) => {
   const { email } = req.body;
-  console.log(email);
 
   try {
     const existUser = await userModel.findOne({
@@ -321,15 +452,64 @@ const updateEmail = async (req, res) => {
   }
 };
 
+const updatePassword = async (req, res) => {
+  const { id } = req.params;
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+
+  try {
+    const createdAt = new Date();
+    const formattedDate = date.format(createdAt, "YYYY-MM-DD HH:mm:ss", true); // true for UTC time;
+
+    const user = await userModel.findByPk(id);
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return res.status(404).json({ message: "Password is required" });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(oldPassword, user.password);
+
+    if (!isPasswordMatch) {
+      return res.status(400).json({ message: "Incorrect old password" });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "New password and Confirm password do not match",
+      });
+    }
+
+    const hashPassword = await bcrypt.hash(newPassword, saltsRounds);
+
+    await userModel.update(
+      {
+        password: hashPassword,
+        updatedAt: sequelize.literal(`'${formattedDate}'`),
+      },
+      {
+        where: { id },
+      }
+    );
+
+    return res.status(200).json({
+      status: "success",
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
-  getUserByEmail,
+  // getUserByEmail,
   getUserById,
   getAllUserByRole,
   getUserByRole,
   deleteUser,
   searchUser,
   updateUserData,
-  updatePassword,
+  forgotPassword,
   updateProfile,
   updateEmail,
+  updatePassword,
 };

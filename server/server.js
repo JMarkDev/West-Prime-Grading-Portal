@@ -17,6 +17,7 @@ const gradeRoute = require("./src/routes/gradeRoute");
 const subjectRoute = require("./src/routes/subjectRoute");
 const schoolYearRoute = require("./src/routes/schoolYearRoute");
 const classRoute = require("./src/routes/classRoute");
+const submissionRoute = require("./src/routes/submissionRoute");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -71,6 +72,7 @@ app.use("/grades", gradeRoute);
 app.use("/subjects", subjectRoute);
 app.use("/schoolyears", schoolYearRoute);
 app.use("/classes", classRoute);
+app.use("/submission", submissionRoute);
 
 app.get("/");
 // Server setup

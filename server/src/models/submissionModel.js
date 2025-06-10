@@ -1,37 +1,25 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
 
-const Student = sequelize.define(
-  "students",
+const Submission = sequelize.define(
+  "submissions",
   {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    studentId: {
-      type: DataTypes.STRING(55),
-      allowNull: true,
-    },
-    course: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    yearLevel: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     schoolYear: {
       type: DataTypes.STRING(20),
       allowNull: true,
     },
-    status: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
+    semester: {
+      type: DataTypes.STRING(25),
+      allowNull: false,
     },
-    section: {
-      type: DataTypes.STRING(20),
-      allowNull: true,
+    dateAndTime: {
+      type: DataTypes.DATE,
+      allowNull: false,
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -44,8 +32,9 @@ const Student = sequelize.define(
     },
   },
   {
-    timestamps: false,
+    tableName: "submissions",
+    timestamps: false, // because you manually handle createdAt/updatedAt
   }
 );
 
-module.exports = Student;
+module.exports = Submission;

@@ -9,8 +9,8 @@ const {
 router.get("/all", subjectController.getSubjects);
 router.post(
   "/add",
-  addSubjectValidation(),
-  validateForm,
+  // addSubjectValidation(),
+  // validateForm,
   subjectController.addSubject
 );
 router.put(

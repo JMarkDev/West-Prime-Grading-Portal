@@ -38,4 +38,7 @@ router.get(
 );
 
 router.put("/input-grades", classController.inputGrades);
+router.get("/filter", classController.filterAllStudentClass);
+router.put("/update/:id", classController.updateClass);
+
 module.exports = router;

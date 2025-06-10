@@ -18,7 +18,7 @@ const Grade = sequelize.define(
       allowNull: true,
     },
     grade: {
-      type: DataTypes.FLOAT(5, 2),
+      type: DataTypes.STRING(20),
       allowNull: true,
     },
     remarks: {

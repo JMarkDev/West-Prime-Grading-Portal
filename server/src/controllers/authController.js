@@ -21,6 +21,8 @@ const handleRegister = async (req, res) => {
     schoolYear,
     role,
     password,
+    status,
+    section,
   } = req.body;
   try {
     const user = await userModel.findOne({
@@ -40,10 +42,35 @@ const handleRegister = async (req, res) => {
 
     let studentId = null;
     if (role === rolesList.student) {
+      const currentYear = new Date().getFullYear();
+
+      // 2️⃣ Find the last student ID in the database
+      const lastStudent = await studentModel.findOne({
+        where: sequelize.where(
+          sequelize.fn("LEFT", sequelize.col("studentId"), 4),
+          currentYear.toString()
+        ),
+        order: [["studentId", "DESC"]],
+      });
+
+      // 3️⃣ Determine new student number
+      let newStudentNumber = 1; // Default to 1 if no student exists for the year
+      if (lastStudent && lastStudent.studentId) {
+        // Extract the last 4 digits and increment
+        const lastNumber = parseInt(lastStudent.studentId.slice(4), 10);
+        newStudentNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
+      }
+      // 4️⃣ Format student ID as "YYYY0001"
+      const generateId = `${currentYear}-${newStudentNumber
+        .toString()
+        .padStart(4, "0")}`;
       const newStudent = await studentModel.create({
+        studentId: generateId,
         course,
         yearLevel,
         schoolYear,
+        status,
+        section,
         createdAt: sequelize.literal(`'${formattedDate}'`),
       });
 
@@ -100,7 +127,7 @@ const handleLogin = async (req, res) => {
 
     if (matchPassword) {
       //  generate tokens
-      const tokens = setTokens(res, { email, role: user.role });
+      const tokens = setTokens(res, { id: user.id, role: user.role });
       accessToken = tokens.accessToken;
 
       return res.status(200).json({

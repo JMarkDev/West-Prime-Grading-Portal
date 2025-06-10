@@ -11,11 +11,11 @@ const Subjects = sequelize.define(
     },
     subjectCode: {
       type: DataTypes.STRING(55),
-      allowNull: false,
+      allowNull: true,
     },
     units: {
       type: DataTypes.INTEGER(11),
-      allowNull: false,
+      allowNull: true,
     },
     description: {
       type: DataTypes.STRING(255),

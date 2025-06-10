@@ -10,6 +10,10 @@ const User = sequelize.define(
       primaryKey: true,
       autoIncrement: true,
     },
+    image: {
+      type: DataTypes.STRING(250),
+      allowNull: true,
+    },
     firstName: {
       type: DataTypes.STRING(55),
       allowNull: false,
@@ -50,6 +54,7 @@ const User = sequelize.define(
         model: "students",
         key: "id",
       },
+      onUpdate: "CASCADE", // Allow updating studentId
       onDelete: "CASCADE",
     },
     createdAt: {

@@ -67,7 +67,7 @@ const loginValidationRules = () => {
 };
 
 // Validation rules for register
-const registerValidationRules = () => {
+const registerValidationRules = (isUpdate = false) => {
   return [
     validateRequiredField("firstName"),
     validateRequiredField("lastName"),
@@ -75,17 +75,24 @@ const registerValidationRules = () => {
     validateEmail(),
     validateRequiredField("contactNumber"),
     validateRequiredField("address"),
-    validatePassword(),
-    body("confirmPassword").custom((value, { req }) => {
-      if (!value) {
-        throw new Error("Confirm password is required");
-      }
 
-      if (value !== req.body.password) {
-        throw new Error("Passwords do not match");
+    // Skip password validation for updates
+    isUpdate ? body("password").optional() : validatePassword(),
+
+    body("confirmPassword").custom((value, { req }) => {
+      if (!isUpdate) {
+        // Only validate during registration
+        if (!value) {
+          throw new Error("Confirm password is required");
+        }
+
+        if (value !== req.body.password) {
+          throw new Error("Passwords do not match");
+        }
       }
       return true;
     }),
+
     body("contactNumber").custom((value, { req }) => {
       if (!value) {
         throw new Error("Contact Number is required");
@@ -116,6 +123,22 @@ const registerValidationRules = () => {
       if (req.body.role === 3) {
         if (!value) {
           throw new Error("School Year is required");
+        }
+      }
+      return true;
+    }),
+    body("status").custom((value, { req }) => {
+      if (req.body.role === 3) {
+        if (!value) {
+          throw new Error("Status is required");
+        }
+      }
+      return true;
+    }),
+    body("section").custom((value, { req }) => {
+      if (req.body.role === 3) {
+        if (!value) {
+          throw new Error("Section is required");
         }
       }
       return true;
